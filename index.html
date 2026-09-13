@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>엑셀 변경점 추적기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="bar">
+  <h1>엑셀 변경점 추적기</h1>
+  <p class="tag" id="runtime" data-state="loading">파이썬 런타임 준비 중</p>
+</header>
+
+<main>
+  <!-- 파일 두 개 -->
+  <section class="stage" aria-label="비교할 파일 선택">
+    <div class="well" id="wellA" data-side="a" tabindex="0" role="button" aria-label="이전 버전 파일 선택">
+      <span class="well-role">이전 버전</span>
+      <span class="well-name">파일을 끌어다 놓거나 눌러서 선택</span>
+      <span class="well-meta"></span>
+      <input type="file" accept=".xlsx,.xlsm,.xltx" hidden>
+    </div>
+
+    <div class="gutter">
+      <svg viewBox="0 0 24 48" aria-hidden="true"><path d="M4 24h14M13 18l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button type="button" id="swap" class="ghost" title="두 파일 위치 바꾸기">위치 바꾸기</button>
+    </div>
+
+    <div class="well" id="wellB" data-side="b" tabindex="0" role="button" aria-label="이후 버전 파일 선택">
+      <span class="well-role">이후 버전</span>
+      <span class="well-name">파일을 끌어다 놓거나 눌러서 선택</span>
+      <span class="well-meta"></span>
+      <input type="file" accept=".xlsx,.xlsm,.xltx" hidden>
+    </div>
+  </section>
+
+  <!-- 옵션 -->
+  <section class="controls">
+    <div class="opts">
+      <label>비교 기준
+        <select id="optCompare">
+          <option value="value">계산된 값</option>
+          <option value="formula">수식</option>
+        </select>
+      </label>
+      <label>보기
+        <select id="optView">
+          <option value="auto">자동</option>
+          <option value="changes">변경된 부분만</option>
+          <option value="all">전체 행</option>
+        </select>
+      </label>
+      <label class="check"><input type="checkbox" id="optCase"> 대소문자 무시</label>
+      <label class="check"><input type="checkbox" id="optSpace"> 공백 무시</label>
+    </div>
+    <button type="button" id="run" class="primary" disabled>변경점 비교</button>
+  </section>
+
+  <p class="note" id="hint">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
+
+  <!-- 결과 -->
+  <section id="result" hidden>
+    <div class="summary" id="summary"></div>
+
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="결과 보기 방식">
+        <button type="button" class="tab on" data-view="grid" role="tab">표로 보기</button>
+        <button type="button" class="tab" data-view="list" role="tab">변경 목록</button>
+      </div>
+      <div class="spacer"></div>
+      <input type="search" id="filter" placeholder="값으로 찾기" hidden>
+      <button type="button" id="dlReport" class="ghost">엑셀 리포트 저장</button>
+      <button type="button" id="dlJson" class="ghost">JSON 저장</button>
+    </div>
+
+    <div class="legend">
+      <span class="k add">추가</span>
+      <span class="k del">삭제</span>
+      <span class="k mod">수정</span>
+    </div>
+
+    <div class="viewport" id="gridWrap"></div>
+    <div class="viewport" id="listWrap" hidden></div>
+
+    <nav class="sheettabs" id="sheettabs" aria-label="시트"></nav>
+  </section>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="panel">
+    <div class="bars"><i></i><i></i><i></i></div>
+    <p id="overlayText">준비 중</p>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
