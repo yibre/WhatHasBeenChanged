@@ -9,39 +9,83 @@ const files = { a: null, b: null };
 let worker = null, ready = false, result = null, activeSheet = 0, shown = RENDER_CAP;
 let pending = null, seq = 0;
 
+/* ── 워커 감시(워치독) ──────────────────────────
+   worker.js의 자체 타임아웃(withTimeout)은 동기 호출(pyodide.pyimport 등)이
+   워커 스레드를 완전히 막아버리면 자신도 함께 멈춰서 발동하지 못한다.
+   그러면 워커는 어떤 메시지도 못 보내고, 오버레이는 영원히 떠 있게 된다.
+   그래서 메인 스레드 쪽에서 별도로 "이 시간 안에 다음 소식이 없으면 죽은 걸로 본다"를
+   지키고, 응답이 없으면 워커를 강제로 terminate() 해서 화면을 풀어준다. */
+const STAGE_TIMEOUT_MS = {
+  "파이썬 런타임 내려받는 중": 120000,
+  "엑셀 라이브러리 설치 중": 120000,
+  "비교 엔진 올리는 중": 30000,
+};
+const WATCHDOG_DEFAULT_MS = 15000;   // 첫 status가 오기 전 기본 대기 시간
+const WATCHDOG_GRACE_MS = 5000;      // 워커 자체 타임아웃이 정상 발동할 시간을 먼저 준다
+let watchdogTimer = null;
+
+function armWatchdog(stage) {
+  clearTimeout(watchdogTimer);
+  const ms = (stage ? STAGE_TIMEOUT_MS[stage] : null) ?? WATCHDOG_DEFAULT_MS;
+  watchdogTimer = setTimeout(() => onWorkerStuck(stage), ms + WATCHDOG_GRACE_MS);
+}
+
+function disarmWatchdog() {
+  clearTimeout(watchdogTimer);
+  watchdogTimer = null;
+}
+
+function onWorkerStuck(stage) {
+  console.error("[엑셀 diff] 워커가 응답 없이 멈춰서 강제 종료합니다:", stage);
+  worker && worker.terminate();
+  worker = null;
+  ready = false;
+  overlay(false);
+  const label = stage || "시작";
+  setRuntime(`${label} 단계에서 멈춤`, "error");
+  fail(`"${label}" 단계에서 응답이 없어 강제로 멈췄습니다 (브라우저 개발자 도구 콘솔에 자세한 내용이 있습니다). 페이지를 새로고침해서 다시 시도해주세요.`);
+}
+
 /* ── 워커 ──────────────────────────────────── */
 function startWorker() {
   worker = new Worker("worker.js");
   worker.onmessage = ({ data }) => {
     if (data.type === "status") {
+      armWatchdog(data.stage);
       setRuntime(data.stage, "loading");
       $("#overlayText").textContent = data.stage;
     } else if (data.type === "ready") {
+      disarmWatchdog();
       ready = true;
       setRuntime("파이썬 준비됨", "ready");
       overlay(false);
       refreshRunButton();
     } else if (data.type === "result") {
+      disarmWatchdog();
       overlay(false);
       render(JSON.parse(data.json));
     } else if (data.type === "report") {
+      disarmWatchdog();
       overlay(false);
       const bin = atob(data.b64);
       const buf = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
       save(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "변경점리포트.xlsx");
     } else if (data.type === "error") {
+      disarmWatchdog();
       overlay(false);
       if (data.stage) setRuntime(`${data.stage} 실패`, "error");
       fail(`${data.stage ? data.stage + " 단계에서 막혔습니다. " : ""}${data.message} (브라우저 개발자 도구 콘솔에 자세한 내용이 있습니다)`);
     }
   };
-  worker.onerror = (e) => {
+  worker.onerror = () => {
+    disarmWatchdog();
     overlay(false);
     setRuntime("런타임을 불러오지 못함", "error");
     fail("파이썬 런타임을 불러오지 못했습니다. 인터넷 연결을 확인하거나, serve.py로 페이지를 연 것이 맞는지 확인하세요.");
   };
   overlay(true, "시작하는 중");
+  armWatchdog(null);
   worker.postMessage({ type: "init" });
 }
 

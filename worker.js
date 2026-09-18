@@ -1,8 +1,9 @@
 // worker.js — 파이썬 런타임(Pyodide)을 백그라운드 스레드에서 구동한다.
 // 파일 바이트는 이 워커 안에서만 다뤄지고, 어떤 네트워크 요청에도 실리지 않는다.
 
-const PYODIDE_VERSION = "0.26.4";
-const CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+// 파이썬 런타임(Pyodide)과 micropip 휠을 CDN 대신 이 저장소의 pyodide/ 폴더에서 그대로 읽는다.
+// 매 방문마다 CDN을 거치지 않으니 로딩이 훨씬 빠르고, CDN이 막힌 환경에서도 동작한다.
+const CDN = "pyodide/";
 
 let pyodide = null;
 let engine = null;

@@ -241,6 +241,7 @@ tbody tr:hover td:not(.gut){filter:brightness(.985)}
   background:rgba(238,241,240,.86);
   display:flex;align-items:center;justify-content:center;
 }
+.overlay[hidden]{display:none}
 .panel{
   background:var(--surface);border:1px solid var(--rule);
   padding:1.5rem 2rem;text-align:center;min-width:260px;

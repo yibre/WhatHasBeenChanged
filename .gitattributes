@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# 번들된 파이썬 런타임/휠은 바이너리로 취급 (LF 정규화 금지)
+*.wasm binary
+*.whl binary
+*.zip binary

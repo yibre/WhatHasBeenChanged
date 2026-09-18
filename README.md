@@ -12,11 +12,11 @@ cd excel-diff
 python serve.py
 ```
 
-브라우저가 `http://127.0.0.1:8000` 으로 열립니다. 첫 실행 때 파이썬 런타임을 내려받느라
-10초쯤 걸리고, 그 뒤로는 캐시에서 바로 뜹니다.
+브라우저가 `http://127.0.0.1:8000` 으로 열립니다. 파이썬 런타임(Pyodide)과 openpyxl은
+CDN/PyPI가 아니라 이 저장소의 `pyodide/`, `wheels/` 폴더에 이미 같이 들어 있어서,
+바로 로컬 파일에서 읽어옵니다 — 인터넷이 없어도, 처음 여는 사람이어도 몇 초 안에 뜹니다.
 
 `serve.py`는 표준 라이브러리만 쓰기 때문에 **브라우저에서만 쓸 거라면 설치할 패키지가 없습니다.**
-비교에 필요한 openpyxl은 브라우저 안의 Pyodide가 알아서 받아옵니다.
 
 터미널 CLI(`python diff_engine.py ...`)도 쓰려면 openpyxl이 필요합니다.
 
@@ -57,7 +57,8 @@ pip install -r requirements.txt
 | `index.html`, `styles.css` | 화면 |
 | `serve.py` | 정적 파일 서버 (표준 라이브러리만 씀) |
 | `requirements.txt` | CLI로 쓸 때 필요한 패키지 |
-| `wheels/` | (선택) 폐쇄망용 wheel 파일을 넣어두는 곳 |
+| `pyodide/` | 브라우저에서 파이썬을 돌리는 런타임(Pyodide) 본체. CDN 대신 여기서 읽습니다 |
+| `wheels/` | openpyxl / et_xmlfile wheel. PyPI 대신 여기서 설치합니다 |
 
 ## 무엇을 잡아내나
 
@@ -106,34 +107,48 @@ python diff_engine.py 이전.xlsx 이후.xlsx --formula --ignore-space
 
 | 멈춘 단계 | 원인 | 해결 |
 |---|---|---|
-| 파이썬 런타임 내려받는 중 | jsDelivr CDN 차단 | 아래 "인터넷 없이 쓰기"대로 Pyodide를 폴더에 두기 |
-| 엑셀 라이브러리 설치 중 | PyPI 차단 | 아래대로 wheel 파일을 `wheels/`에 두기 |
+| 파이썬 런타임 내려받는 중 | `pyodide/` 폴더가 없거나 파일이 빠짐 | 아래 "번들 다시 받기"로 `pyodide/`를 채우기 |
+| 엑셀 라이브러리 설치 중 | `wheels/` 폴더가 없거나 파일이 빠짐 | 아래 "번들 다시 받기"로 `wheels/`를 채우기 |
 | 비교 엔진 올리는 중 | `diff_engine.py`가 같은 폴더에 없음 | 주소창에 `http://127.0.0.1:8000/diff_engine.py`를 쳐서 소스가 보이는지 확인 |
 
-openpyxl은 Pyodide 기본 패키지에 포함돼 있지 않아 실행 시점에 PyPI에서 받아옵니다.
-사내망처럼 PyPI가 막힌 곳이라면 wheel을 미리 넣어두는 방식이 확실합니다.
+## 정적 호스팅에 배포하기
 
-## 인터넷 없이 쓰기
+이 저장소는 이미 완전히 서버리스입니다. `serve.py`는 로컬 개발용 정적 파일 서버일 뿐,
+비교는 전부 브라우저 안(Web Worker + Pyodide)에서 일어나고 파일은 어디로도 전송되지 않습니다.
+그래서 폴더 전체(특히 `index.html`, `app.js`, `worker.js`, `styles.css`, `diff_engine.py`,
+`pyodide/`, `wheels/`)를 그대로 정적 호스팅에 올리면 됩니다 — 백엔드도, 빌드 과정도 필요 없습니다.
 
-**엑셀 라이브러리**를 미리 받아둡니다. 인터넷 되는 곳에서 한 번만 하면 됩니다.
+- **GitHub Pages**: 이 저장소를 그대로 Pages로 켜면 됩니다
+- **Netlify / Vercel / Cloudflare Pages**: 빌드 명령 없이 "정적 파일 배포"로 이 폴더를 그대로 업로드
+
+`pyodide/`, `wheels/`를 함께 올려두면 방문자가 CDN이나 PyPI를 거치지 않고
+같은 도메인에서 바로 런타임을 받으므로, 첫 방문도 빠르고 사내망/폐쇄망에서도 그대로 동작합니다.
+
+## 번들 다시 받기 (버전을 올리거나 다시 받아야 할 때)
+
+**엑셀 라이브러리**(openpyxl):
 
 ```bash
-mkdir wheels
-pip download openpyxl -d wheels
+pip download openpyxl -d wheels --no-deps
+pip download et_xmlfile -d wheels --no-deps
 ```
 
-`wheels/` 폴더에 `openpyxl-*.whl`과 `et_xmlfile-*.whl`이 생깁니다.
-`serve.py`가 이 목록을 알려주고, 브라우저는 PyPI 대신 여기서 설치합니다. 코드는 안 고쳐도 됩니다.
+**파이썬 런타임**(Pyodide, jsDelivr 기준 `worker.js`의 `PYODIDE_VERSION`과 맞추기):
 
-**파이썬 런타임**까지 로컬로 두려면,
-
-1. <https://github.com/pyodide/pyodide/releases> 에서 `pyodide-0.26.4.tar.bz2`를 받습니다
-2. 압축을 풀어 이 폴더 아래 `pyodide/`로 둡니다
-3. `worker.js` 위쪽 상수를 고칩니다
-
-```js
-const CDN = "pyodide/";
+```bash
+V=0.26.4
+mkdir -p pyodide
+for f in pyodide.js pyodide.mjs pyodide.asm.js pyodide.asm.wasm pyodide-lock.json \
+         python_stdlib.zip micropip-0.6.0-py3-none-any.whl packaging-23.2-py3-none-any.whl; do
+  curl -sfo "pyodide/$f" "https://cdn.jsdelivr.net/pyodide/v$V/full/$f"
+done
 ```
+
+micropip/packaging 파일명(버전)은 Pyodide 버전마다 다를 수 있습니다 —
+`pyodide-lock.json`에서 `"micropip"`, `"packaging"` 항목의 `file_name`을 확인하고 맞춰 받으세요.
+
+두 경우 모두 코드는 손대지 않아도 됩니다. `worker.js`는 `pyodide/`, `wheels/`에서 먼저 찾고
+그 폴더에 없을 때만 CDN/PyPI로 넘어갑니다.
 
 `index.html`의 Google Fonts 링크도 지우면 완전히 오프라인으로 돕니다.
 

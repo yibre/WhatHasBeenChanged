@@ -31,6 +31,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         ".json": "application/json",
         ".css": "text/css",
         ".html": "text/html; charset=utf-8",
+        ".wasm": "application/wasm",
+        ".whl": "application/octet-stream",
+        ".zip": "application/zip",
     }
 
     def __init__(self, *a, **kw):
