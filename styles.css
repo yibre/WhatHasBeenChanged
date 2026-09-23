@@ -45,6 +45,7 @@ button,input,select{font:inherit;color:inherit}
   content:"";width:7px;height:7px;border-radius:50%;
   background:var(--mod);
 }
+.lang-toggle{margin-left:auto;font-size:.8125rem;padding:.35rem .7rem}
 .tag[data-state="ready"]::before{background:var(--add)}
 .tag[data-state="error"]::before{background:var(--del)}
 

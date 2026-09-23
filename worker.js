@@ -1,6 +1,8 @@
 // worker.js — 파이썬 런타임(Pyodide)을 백그라운드 스레드에서 구동한다.
 // 파일 바이트는 이 워커 안에서만 다뤄지고, 어떤 네트워크 요청에도 실리지 않는다.
 
+importScripts("i18n.js");   // STRINGS/t()/stageLabel() 공유 — 이 안에서 쓰는 lang은 init 메시지로 맞춘다
+
 // 파이썬 런타임(Pyodide)과 micropip 휠을 CDN 대신 이 저장소의 pyodide/ 폴더에서 그대로 읽는다.
 // 매 방문마다 CDN을 거치지 않으니 로딩이 훨씬 빠르고, CDN이 막힌 환경에서도 동작한다.
 const CDN = "pyodide/";
@@ -8,30 +10,30 @@ const CDN = "pyodide/";
 let pyodide = null;
 let engine = null;
 
-const say = (stage) => {
-  console.log("[엑셀 diff]", stage);
-  postMessage({ type: "status", stage });
+const say = (stageKey) => {
+  console.log("[엑셀 diff]", stageKey);
+  postMessage({ type: "status", stage: stageKey });
 };
 
 // 어느 단계에서든 매달려 있지 않도록 제한 시간을 둔다
-function withTimeout(promise, ms, what) {
+function withTimeout(promise, ms, stageKey) {
   let timer;
   const guard = new Promise((_, reject) => {
     timer = setTimeout(
-      () => reject(new Error(`${what} 단계가 ${ms / 1000}초 안에 끝나지 않았습니다. 네트워크가 막혀 있을 수 있습니다.`)),
+      () => reject(new Error(t("worker_timeout", stageLabel(stageKey), ms / 1000))),
       ms
     );
   });
   return Promise.race([promise, guard]).finally(() => clearTimeout(timer));
 }
 
-async function step(what, ms, fn) {
-  say(what);
+async function step(stageKey, ms, fn) {
+  say(stageKey);
   try {
-    return await withTimeout(Promise.resolve().then(fn), ms, what);
+    return await withTimeout(Promise.resolve().then(fn), ms, stageKey);
   } catch (err) {
-    console.error(`[엑셀 diff] "${what}" 실패`, err);
-    err.stage = what;
+    console.error(`[엑셀 diff] "${stageKey}" 실패`, err);
+    err.stage = stageKey;
     throw err;
   }
 }
@@ -68,20 +70,19 @@ await micropip.install([str(u) for u in js.self._wheels])
 }
 
 async function boot() {
-  await step("파이썬 런타임 내려받는 중", 120000, async () => {
+  await step("runtime", 120000, async () => {
     importScripts(`${CDN}pyodide.js`);
     pyodide = await loadPyodide({ indexURL: CDN });
     console.log("[엑셀 diff] Pyodide", pyodide.version);
   });
 
-  await step("엑셀 라이브러리 설치 중", 120000, installOpenpyxl);
+  await step("excel_lib", 120000, installOpenpyxl);
 
-  await step("비교 엔진 올리는 중", 30000, async () => {
+  await step("diff_engine", 30000, async () => {
     const res = await fetch("diff_engine.py", { cache: "no-store" });
-    if (!res.ok)
-      throw new Error(`diff_engine.py를 서버에서 받지 못했습니다 (HTTP ${res.status}). 같은 폴더에 있는지 확인하세요.`);
+    if (!res.ok) throw new Error(t("worker_fetch_fail", res.status));
     const src = await res.text();
-    if (!src.includes("def compare")) throw new Error("diff_engine.py 내용이 올바르지 않습니다.");
+    if (!src.includes("def compare")) throw new Error(t("worker_bad_content"));
 
     pyodide.FS.mkdirTree("/lib/exceldiff");
     pyodide.FS.writeFile("/lib/exceldiff/diff_engine.py", src);
@@ -96,6 +97,7 @@ onmessage = async (ev) => {
   const { type, id } = ev.data;
   try {
     if (type === "init") {
+      if (ev.data.lang) lang = ev.data.lang;
       await boot();
     } else if (type === "reset") {
       engine && engine.reset();

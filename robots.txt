@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://whathaschanged.net/sitemap.xml

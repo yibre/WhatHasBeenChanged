@@ -3,37 +3,44 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>엑셀 변경점 추적기</title>
+<title>엑셀 변경점 추적기 · Excel Diff Tracker</title>
+<meta name="description" content="브라우저 안에서만 두 엑셀 파일을 비교합니다. 파일은 어디로도 전송되지 않습니다. · Compare two Excel files entirely inside your browser — nothing is ever uploaded anywhere.">
+<meta property="og:title" content="엑셀 변경점 추적기 · Excel Diff Tracker">
+<meta property="og:description" content="브라우저 안에서만 동작하는 무료 엑셀 비교 도구. A free Excel diff tool that runs 100% client-side.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<script src="i18n.js"></script>
 </head>
 <body>
 
 <header class="bar">
-  <h1>엑셀 변경점 추적기</h1>
-  <p class="tag" id="runtime" data-state="loading">파이썬 런타임 준비 중</p>
+  <h1 data-i18n="page_title">엑셀 변경점 추적기</h1>
+  <p class="tag" id="runtime" data-state="loading" data-i18n="tagline_loading">파이썬 런타임 준비 중</p>
+  <button type="button" id="langToggle" class="ghost lang-toggle" title="Switch language / 언어 전환">EN</button>
 </header>
 
 <main>
   <!-- 파일 두 개 -->
-  <section class="stage" aria-label="비교할 파일 선택">
-    <div class="well" id="wellA" data-side="a" tabindex="0" role="button" aria-label="이전 버전 파일 선택">
-      <span class="well-role">이전 버전</span>
-      <span class="well-name">파일을 끌어다 놓거나 눌러서 선택</span>
+  <section class="stage" aria-label="비교할 파일 선택" data-i18n-aria="aria_pick_files">
+    <div class="well" id="wellA" data-side="a" tabindex="0" role="button" aria-label="이전 버전 파일 선택" data-i18n-aria="aria_pick_a">
+      <span class="well-role" data-i18n="well_a_role">이전 버전</span>
+      <span class="well-name" data-i18n="well_placeholder">파일을 끌어다 놓거나 눌러서 선택</span>
       <span class="well-meta"></span>
       <input type="file" accept=".xlsx,.xlsm,.xltx" hidden>
     </div>
 
     <div class="gutter">
       <svg viewBox="0 0 24 48" aria-hidden="true"><path d="M4 24h14M13 18l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <button type="button" id="swap" class="ghost" title="두 파일 위치 바꾸기">위치 바꾸기</button>
+      <button type="button" id="swap" class="ghost" title="두 파일 위치 바꾸기" data-i18n="btn_swap" data-i18n-title="aria_swap">위치 바꾸기</button>
     </div>
 
-    <div class="well" id="wellB" data-side="b" tabindex="0" role="button" aria-label="이후 버전 파일 선택">
-      <span class="well-role">이후 버전</span>
-      <span class="well-name">파일을 끌어다 놓거나 눌러서 선택</span>
+    <div class="well" id="wellB" data-side="b" tabindex="0" role="button" aria-label="이후 버전 파일 선택" data-i18n-aria="aria_pick_b">
+      <span class="well-role" data-i18n="well_b_role">이후 버전</span>
+      <span class="well-name" data-i18n="well_placeholder">파일을 끌어다 놓거나 눌러서 선택</span>
       <span class="well-meta"></span>
       <input type="file" accept=".xlsx,.xlsm,.xltx" hidden>
     </div>
@@ -42,59 +49,59 @@
   <!-- 옵션 -->
   <section class="controls">
     <div class="opts">
-      <label>비교 기준
+      <label><span data-i18n="opt_compare_label">비교 기준</span>
         <select id="optCompare">
-          <option value="value">계산된 값</option>
-          <option value="formula">수식</option>
+          <option value="value" data-i18n="opt_compare_value">계산된 값</option>
+          <option value="formula" data-i18n="opt_compare_formula">수식</option>
         </select>
       </label>
-      <label>보기
+      <label><span data-i18n="opt_view_label">보기</span>
         <select id="optView">
-          <option value="auto">자동</option>
-          <option value="changes">변경된 부분만</option>
-          <option value="all">전체 행</option>
+          <option value="auto" data-i18n="opt_view_auto">자동</option>
+          <option value="changes" data-i18n="opt_view_changes">변경된 부분만</option>
+          <option value="all" data-i18n="opt_view_all">전체 행</option>
         </select>
       </label>
-      <label class="check"><input type="checkbox" id="optCase"> 대소문자 무시</label>
-      <label class="check"><input type="checkbox" id="optSpace"> 공백 무시</label>
+      <label class="check"><input type="checkbox" id="optCase"> <span data-i18n="chk_ignore_case">대소문자 무시</span></label>
+      <label class="check"><input type="checkbox" id="optSpace"> <span data-i18n="chk_ignore_space">공백 무시</span></label>
     </div>
-    <button type="button" id="run" class="primary" disabled>변경점 비교</button>
+    <button type="button" id="run" class="primary" disabled data-i18n="btn_run">변경점 비교</button>
   </section>
 
-  <p class="note" id="hint">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
+  <p class="note" id="hint" data-i18n="hint_default">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
 
   <!-- 결과 -->
   <section id="result" hidden>
     <div class="summary" id="summary"></div>
 
     <div class="toolbar">
-      <div class="tabs" role="tablist" aria-label="결과 보기 방식">
-        <button type="button" class="tab on" data-view="grid" role="tab">표로 보기</button>
-        <button type="button" class="tab" data-view="list" role="tab">변경 목록</button>
+      <div class="tabs" role="tablist" aria-label="결과 보기 방식" data-i18n-aria="result_view_aria">
+        <button type="button" class="tab on" data-view="grid" role="tab" data-i18n="tab_grid">표로 보기</button>
+        <button type="button" class="tab" data-view="list" role="tab" data-i18n="tab_list">변경 목록</button>
       </div>
       <div class="spacer"></div>
-      <input type="search" id="filter" placeholder="값으로 찾기" hidden>
-      <button type="button" id="dlReport" class="ghost">엑셀 리포트 저장</button>
-      <button type="button" id="dlJson" class="ghost">JSON 저장</button>
+      <input type="search" id="filter" placeholder="값으로 찾기" hidden data-i18n-placeholder="filter_placeholder">
+      <button type="button" id="dlReport" class="ghost" data-i18n="btn_report">엑셀 리포트 저장</button>
+      <button type="button" id="dlJson" class="ghost" data-i18n="btn_json">JSON 저장</button>
     </div>
 
     <div class="legend">
-      <span class="k add">추가</span>
-      <span class="k del">삭제</span>
-      <span class="k mod">수정</span>
+      <span class="k add" data-i18n="legend_add">추가</span>
+      <span class="k del" data-i18n="legend_del">삭제</span>
+      <span class="k mod" data-i18n="legend_mod">수정</span>
     </div>
 
     <div class="viewport" id="gridWrap"></div>
     <div class="viewport" id="listWrap" hidden></div>
 
-    <nav class="sheettabs" id="sheettabs" aria-label="시트"></nav>
+    <nav class="sheettabs" id="sheettabs" aria-label="시트" data-i18n-aria="sheettabs_aria"></nav>
   </section>
 </main>
 
 <div class="overlay" id="overlay" hidden>
   <div class="panel">
     <div class="bars"><i></i><i></i><i></i></div>
-    <p id="overlayText">준비 중</p>
+    <p id="overlayText" data-i18n="overlay_default">준비 중</p>
   </div>
 </div>
 

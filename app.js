@@ -16,18 +16,19 @@ let pending = null, seq = 0;
    그래서 메인 스레드 쪽에서 별도로 "이 시간 안에 다음 소식이 없으면 죽은 걸로 본다"를
    지키고, 응답이 없으면 워커를 강제로 terminate() 해서 화면을 풀어준다. */
 const STAGE_TIMEOUT_MS = {
-  "파이썬 런타임 내려받는 중": 120000,
-  "엑셀 라이브러리 설치 중": 120000,
-  "비교 엔진 올리는 중": 30000,
+  runtime: 120000,
+  excel_lib: 120000,
+  diff_engine: 30000,
 };
 const WATCHDOG_DEFAULT_MS = 15000;   // 첫 status가 오기 전 기본 대기 시간
 const WATCHDOG_GRACE_MS = 5000;      // 워커 자체 타임아웃이 정상 발동할 시간을 먼저 준다
 let watchdogTimer = null;
+let lastStageKey = null;             // 언어 전환 시 오버레이/상태 텍스트를 다시 그리는 데 쓴다
 
-function armWatchdog(stage) {
+function armWatchdog(stageKey) {
   clearTimeout(watchdogTimer);
-  const ms = (stage ? STAGE_TIMEOUT_MS[stage] : null) ?? WATCHDOG_DEFAULT_MS;
-  watchdogTimer = setTimeout(() => onWorkerStuck(stage), ms + WATCHDOG_GRACE_MS);
+  const ms = (stageKey ? STAGE_TIMEOUT_MS[stageKey] : null) ?? WATCHDOG_DEFAULT_MS;
+  watchdogTimer = setTimeout(() => onWorkerStuck(stageKey), ms + WATCHDOG_GRACE_MS);
 }
 
 function disarmWatchdog() {
@@ -35,15 +36,14 @@ function disarmWatchdog() {
   watchdogTimer = null;
 }
 
-function onWorkerStuck(stage) {
-  console.error("[엑셀 diff] 워커가 응답 없이 멈춰서 강제 종료합니다:", stage);
+function onWorkerStuck(stageKey) {
+  console.error("[엑셀 diff] 워커가 응답 없이 멈춰서 강제 종료합니다:", stageKey);
   worker && worker.terminate();
   worker = null;
   ready = false;
   overlay(false);
-  const label = stage || "시작";
-  setRuntime(`${label} 단계에서 멈춤`, "error");
-  fail(`"${label}" 단계에서 응답이 없어 강제로 멈췄습니다 (브라우저 개발자 도구 콘솔에 자세한 내용이 있습니다). 페이지를 새로고침해서 다시 시도해주세요.`);
+  setRuntime(t("stuck_title", stageKey), "error");
+  fail("stuck_message", stageKey);
 }
 
 /* ── 워커 ──────────────────────────────────── */
@@ -51,13 +51,16 @@ function startWorker() {
   worker = new Worker("worker.js");
   worker.onmessage = ({ data }) => {
     if (data.type === "status") {
+      lastStageKey = data.stage;
       armWatchdog(data.stage);
-      setRuntime(data.stage, "loading");
-      $("#overlayText").textContent = data.stage;
+      const label = t(`stage_${data.stage}`);
+      setRuntime(label, "loading");
+      $("#overlayText").textContent = label;
     } else if (data.type === "ready") {
       disarmWatchdog();
+      lastStageKey = null;
       ready = true;
-      setRuntime("파이썬 준비됨", "ready");
+      setRuntime(t("stage_ready"), "ready");
       overlay(false);
       refreshRunButton();
     } else if (data.type === "result") {
@@ -70,23 +73,23 @@ function startWorker() {
       const bin = atob(data.b64);
       const buf = new Uint8Array(bin.length);
       for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-      save(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), "변경점리포트.xlsx");
+      save(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), t("filename_report"));
     } else if (data.type === "error") {
       disarmWatchdog();
       overlay(false);
-      if (data.stage) setRuntime(`${data.stage} 실패`, "error");
-      fail(`${data.stage ? data.stage + " 단계에서 막혔습니다. " : ""}${data.message} (브라우저 개발자 도구 콘솔에 자세한 내용이 있습니다)`);
+      if (data.stage) setRuntime(t("error_title", data.stage), "error");
+      fail("error_message", data.stage, data.message);
     }
   };
   worker.onerror = () => {
     disarmWatchdog();
     overlay(false);
-    setRuntime("런타임을 불러오지 못함", "error");
-    fail("파이썬 런타임을 불러오지 못했습니다. 인터넷 연결을 확인하거나, serve.py로 페이지를 연 것이 맞는지 확인하세요.");
+    setRuntime(t("worker_load_fail_title"), "error");
+    fail("worker_load_fail_msg");
   };
-  overlay(true, "시작하는 중");
+  overlay(true, t("overlay_starting"));
+  worker.postMessage({ type: "init", lang });
   armWatchdog(null);
-  worker.postMessage({ type: "init" });
 }
 
 const setRuntime = (text, state) => {
@@ -100,16 +103,27 @@ function overlay(on, text) {
   if (text) $("#overlayText").textContent = text;
 }
 
-function fail(msg) {
+let failState = null;   // { key, args } — 언어 전환 시 다시 그리는 데 쓴다
+
+function renderFail() {
   const h = $("#hint");
-  h.textContent = msg;
-  h.classList.add("bad");
+  if (failState) {
+    h.textContent = t(failState.key, ...failState.args);
+    h.classList.add("bad");
+  } else {
+    h.textContent = t("hint_default");
+    h.classList.remove("bad");
+  }
+}
+
+function fail(key, ...args) {
+  failState = { key, args };
+  renderFail();
 }
 
 function clearFail() {
-  const h = $("#hint");
-  h.textContent = "파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.";
-  h.classList.remove("bad");
+  failState = null;
+  renderFail();
 }
 
 /* ── 파일 선택 ─────────────────────────────── */
@@ -135,7 +149,7 @@ function setupWell(well) {
 
 function accept(side, file) {
   if (!/\.(xlsx|xlsm|xltx)$/i.test(file.name)) {
-    fail(`${file.name}은(는) 읽을 수 없습니다. xlsx, xlsm, xltx 파일만 비교할 수 있습니다. 예전 xls 파일은 엑셀에서 xlsx로 저장한 뒤 다시 올려주세요.`);
+    fail("file_type_error", file.name);
     return;
   }
   clearFail();
@@ -149,9 +163,9 @@ function paint(side) {
   const well = side === "a" ? $("#wellA") : $("#wellB");
   const f = files[side];
   well.classList.toggle("filled", !!f);
-  well.querySelector(".well-name").textContent = f ? f.name : "파일을 끌어다 놓거나 눌러서 선택";
+  well.querySelector(".well-name").textContent = f ? f.name : t("well_placeholder");
   well.querySelector(".well-meta").textContent = f
-    ? `${(f.size / 1024).toFixed(0)} KB · ${new Date(f.lastModified).toLocaleDateString("ko-KR")}`
+    ? `${(f.size / 1024).toFixed(0)} KB · ${new Date(f.lastModified).toLocaleDateString(t("date_locale"))}`
     : "";
 }
 
@@ -168,9 +182,9 @@ $("#swap").addEventListener("click", () => {
 $("#run").addEventListener("click", async () => {
   if (!files.a || !files.b) return;
   clearFail();
-  overlay(true, "파일 읽는 중");
+  overlay(true, t("overlay_reading"));
   const [a, b] = await Promise.all([files.a.arrayBuffer(), files.b.arrayBuffer()]);
-  overlay(true, "변경점 찾는 중");
+  overlay(true, t("overlay_comparing"));
   const ua = new Uint8Array(a), ub = new Uint8Array(b);
   worker.postMessage({
     type: "compare", id: ++seq,
@@ -199,24 +213,24 @@ function render(res) {
   drawGrid();
   drawList();
   if (res.row_limit_hit)
-    fail(`시트가 매우 커서 앞쪽 ${res.row_limit.toLocaleString()}행까지만 비교했습니다. 전체를 비교하려면 터미널에서 python diff_engine.py 이전.xlsx 이후.xlsx 를 실행하세요.`);
+    fail("row_limit_hit", res.row_limit);
 }
 
 function drawSummary() {
   const s = result.summary;
   const items = [
-    ["셀 변경", s.cell_mod, "mod"],
-    ["행 추가", s.row_add, "add"],
-    ["행 삭제", s.row_del, "del"],
-    ["행 수정", s.row_mod, "mod"],
-    ["열 추가", s.col_add, "add"],
-    ["열 삭제", s.col_del, "del"],
-    ["시트 추가", s.sheet_add, "add"],
-    ["시트 삭제", s.sheet_del, "del"],
+    [t("sum_cell_mod"), s.cell_mod, "mod"],
+    [t("sum_row_add"), s.row_add, "add"],
+    [t("sum_row_del"), s.row_del, "del"],
+    [t("sum_row_mod"), s.row_mod, "mod"],
+    [t("sum_col_add"), s.col_add, "add"],
+    [t("sum_col_del"), s.col_del, "del"],
+    [t("sum_sheet_add"), s.sheet_add, "add"],
+    [t("sum_sheet_del"), s.sheet_del, "del"],
   ];
   const total = items.reduce((n, [, v]) => n + v, 0);
   $("#summary").innerHTML = total === 0
-    ? `<div class="stat"><b>0</b><span>두 파일의 내용이 같습니다</span></div>`
+    ? `<div class="stat"><b>0</b><span>${t("summary_same")}</span></div>`
     : items.map(([label, v, kind]) =>
       `<div class="stat ${v ? kind : "zero"}"><b>${v}</b><span>${label}</span></div>`).join("");
 }
@@ -226,7 +240,7 @@ function drawTabs() {
   $("#sheettabs").innerHTML = result.sheets.map((sh, i) => {
     const n = Object.values(sh.stat).reduce((a, b) => a + b, 0);
     const d = dot[sh.status] ? `<i class="dot ${dot[sh.status]}"></i>` : "";
-    const label = sh.status === "added" ? "새 시트" : sh.status === "deleted" ? "삭제된 시트" : n ? `${n}건` : "";
+    const label = sh.status === "added" ? t("tab_sheet_added") : sh.status === "deleted" ? t("tab_sheet_deleted") : n ? t("tab_count", n) : "";
     return `<button type="button" data-i="${i}" class="${i === activeSheet ? "on" : ""}">${d}${esc(sh.name)}${label ? `<span class="cnt">${label}</span>` : ""}</button>`;
   }).join("");
   $("#sheettabs").querySelectorAll("button").forEach((b) =>
@@ -237,21 +251,21 @@ function drawGrid() {
   const sh = result.sheets[activeSheet];
   const wrap = $("#gridWrap");
   if (!sh || !sh.rows.length) {
-    wrap.innerHTML = `<p class="empty">${esc(sh ? sh.name : "")} 시트는 비어 있습니다.</p>`;
+    wrap.innerHTML = `<p class="empty">${t("grid_sheet_empty", esc(sh ? sh.name : ""))}</p>`;
     return;
   }
 
   const head = sh.cols.map((c) => {
     const cls = c.s === ADD ? "add" : c.s === DEL ? "del" : "";
     const letter = c.s === DEL ? c.a : c.b;
-    const moved = c.a && c.b && c.a !== c.b ? ` title="이전 ${c.a}열 → 이후 ${c.b}열"` : "";
+    const moved = c.a && c.b && c.a !== c.b ? ` title="${t("grid_col_moved_title", c.a, c.b)}"` : "";
     return `<th class="${cls}"${moved}>${letter || "·"}${moved ? "*" : ""}</th>`;
   }).join("");
 
   const slice = sh.rows.slice(0, shown);
   const body = slice.map((r) => {
     if (r.gap !== undefined)
-      return `<tr class="gaprow"><td colspan="${sh.cols.length + 2}">동일한 ${r.gap}행 접힘</td></tr>`;
+      return `<tr class="gaprow"><td colspan="${sh.cols.length + 2}">${t("grid_gap_row", r.gap)}</td></tr>`;
     const rc = r.s === ADD ? "add" : r.s === DEL ? "del" : r.s === MOD ? "mod" : "";
     const cells = r.c.map((c) => {
       const cls = CLS[c.s] || "";
@@ -260,19 +274,19 @@ function drawGrid() {
       else if (c.s === DEL) inner = esc(c.o);
       else if (c.s === NONE) inner = "";
       else inner = esc(c.n);
-      const t = c.s === MOD ? ` title="${esc(c.o)} → ${esc(c.n)}"` : ` title="${esc(c.n ?? c.o ?? "")}"`;
-      return `<td class="${cls}"${t}>${inner}</td>`;
+      const title = c.s === MOD ? ` title="${esc(c.o)} → ${esc(c.n)}"` : ` title="${esc(c.n ?? c.o ?? "")}"`;
+      return `<td class="${cls}"${title}>${inner}</td>`;
     }).join("");
     return `<tr class="${rc}"><td class="gut a">${r.a ?? ""}</td><td class="gut b">${r.b ?? ""}</td>${cells}</tr>`;
   }).join("");
 
   wrap.innerHTML =
     `<table class="grid"><thead><tr>
-      <th class="gut a" title="이전 파일의 행 번호">이전</th>
-      <th class="gut b" title="이후 파일의 행 번호">이후</th>${head}
+      <th class="gut a" title="${t("grid_th_prev_title")}">${t("grid_th_prev")}</th>
+      <th class="gut b" title="${t("grid_th_next_title")}">${t("grid_th_next")}</th>${head}
     </tr></thead><tbody>${body}</tbody></table>` +
     (sh.rows.length > shown
-      ? `<button type="button" class="more">남은 ${sh.rows.length - shown}행 더 보기</button>` : "");
+      ? `<button type="button" class="more">${t("grid_more", sh.rows.length - shown)}</button>` : "");
 
   const more = wrap.querySelector(".more");
   more && more.addEventListener("click", () => { shown += RENDER_CAP; drawGrid(); });
@@ -282,19 +296,19 @@ function drawList(q = "") {
   const rows = result.changes.filter((c) =>
     !q || c.o.toLowerCase().includes(q) || c.n.toLowerCase().includes(q) || c.sheet.toLowerCase().includes(q));
   $("#listWrap").innerHTML = rows.length === 0
-    ? `<p class="empty">${result.changes.length ? "찾는 값이 없습니다." : "값이 바뀐 셀은 없습니다. 행이나 열 단위 변경은 표로 보기에서 확인하세요."}</p>`
+    ? `<p class="empty">${result.changes.length ? t("list_no_match") : t("list_no_changes")}</p>`
     : `<table class="list"><thead><tr>
-        <th>시트</th><th>이전 위치</th><th>이후 위치</th><th>이전 값</th><th>이후 값</th>
+        <th>${t("list_th_sheet")}</th><th>${t("list_th_prev_pos")}</th><th>${t("list_th_next_pos")}</th><th>${t("list_th_prev_val")}</th><th>${t("list_th_next_val")}</th>
       </tr></thead><tbody>${rows.slice(0, 4000).map((c) =>
       `<tr><td>${esc(c.sheet)}</td><td class="addr">${c.a}</td><td class="addr">${c.b}</td>
         <td class="o">${esc(c.o)}</td><td class="n">${esc(c.n)}</td></tr>`).join("")}</tbody></table>`;
 }
 
 /* ── 보기 전환·저장 ─────────────────────────── */
-document.querySelectorAll(".tab").forEach((t) =>
-  t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === t));
-    const list = t.dataset.view === "list";
+document.querySelectorAll(".tab").forEach((tab) =>
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === tab));
+    const list = tab.dataset.view === "list";
     $("#gridWrap").hidden = list;
     $("#listWrap").hidden = !list;
     $("#sheettabs").hidden = list;
@@ -313,16 +327,36 @@ function save(blob, name) {
 
 $("#dlReport").addEventListener("click", () => {
   if (!result) return;
-  overlay(true, "리포트 만드는 중");
+  overlay(true, t("overlay_report"));
   worker.postMessage({ type: "report", id: ++seq });
 });
 
 $("#dlJson").addEventListener("click", () => {
   if (!result) return;
-  save(new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }), "변경점.json");
+  save(new Blob([JSON.stringify(result, null, 2)], { type: "application/json" }), t("filename_json"));
 });
 
+/* ── 언어 전환 ─────────────────────────────── */
+function switchLang(next) {
+  lang = next;
+  localStorage.setItem("lang", lang);
+  applyStaticI18n();
+  paint("a"); paint("b");
+  renderFail();
+  if (ready) {
+    setRuntime(t("stage_ready"), "ready");
+  } else if (lastStageKey) {
+    const label = t(`stage_${lastStageKey}`);
+    setRuntime(label, "loading");
+    if (!$("#overlay").hidden) $("#overlayText").textContent = label;
+  }
+  if (result) { drawSummary(); drawTabs(); drawGrid(); drawList($("#filter").value.trim().toLowerCase()); }
+}
+
+$("#langToggle").addEventListener("click", () => switchLang(lang === "ko" ? "en" : "ko"));
+
 /* ── 시작 ─────────────────────────────────── */
+applyStaticI18n();
 [$("#wellA"), $("#wellB")].forEach(setupWell);
 window.addEventListener("dragover", (e) => e.preventDefault());
 window.addEventListener("drop", (e) => e.preventDefault());
