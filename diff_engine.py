@@ -48,6 +48,15 @@ MAX_COLS = 2000
 MAX_PAIR_BLOCK = 400        # 유사도 짝짓기를 시도할 최대 블록 크기
 MAX_CHANGE_LIST = 20000     # 변경 목록 최대 건수
 
+# 암호/DRM(IRM)이 걸린 오피스 파일은 xlsx(zip)가 아니라 OLE2 복합 문서 컨테이너에 담겨 온다.
+# openpyxl은 이걸 못 읽으므로, 첫 8바이트만 보고 미리 걸러서 사용자에게 원인을 알려준다.
+_OLE_SIGNATURE = b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+
+
+def _check_not_encrypted(data: bytes, name: str) -> None:
+    if data[:8] == _OLE_SIGNATURE:
+        raise ValueError(f"ENCRYPTED_FILE:{name}")
+
 _CACHE: dict = {"sig": None, "a": None, "b": None}
 _LAST: dict | None = None
 
@@ -394,6 +403,8 @@ def compare(a_bytes, b_bytes, options=None, name_a="이전", name_b="이후") ->
         opts.update(json.loads(options) if isinstance(options, str) else dict(options))
 
     a_bytes, b_bytes = _to_bytes(a_bytes), _to_bytes(b_bytes)
+    _check_not_encrypted(a_bytes, name_a)
+    _check_not_encrypted(b_bytes, name_b)
     sig = (len(a_bytes), len(b_bytes), name_a, name_b, opts["compare"])
     if _CACHE["sig"] != sig:
         _CACHE["a"] = _parse(a_bytes, opts["compare"])

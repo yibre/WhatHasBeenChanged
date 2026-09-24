@@ -61,6 +61,7 @@ const STRINGS = {
     worker_bad_content: "diff_engine.py 내용이 올바르지 않습니다.",
 
     file_type_error: (name) => `${name}은(는) 읽을 수 없습니다. xlsx, xlsm, xltx 파일만 비교할 수 있습니다. 예전 xls 파일은 엑셀에서 xlsx로 저장한 뒤 다시 올려주세요.`,
+    encrypted_file: (name) => `${name} 파일은 암호가 걸려 있거나 회사 DRM(정보 관리·IRM)으로 보호되어 있어서 브라우저에서 열 수 없습니다. 엑셀에서 파일 → 정보 → 통합 문서 보호 메뉴로 암호나 액세스 제한을 해제한 뒤 다시 저장해서 올려주세요. 조직에서 배포한 문서라면 관리자에게 보호 해제를 요청해야 할 수도 있습니다.`,
     row_limit_hit: (limit) => `시트가 매우 커서 앞쪽 ${limit.toLocaleString()}행까지만 비교했습니다. 전체를 비교하려면 터미널에서 python diff_engine.py 이전.xlsx 이후.xlsx 를 실행하세요.`,
 
     sum_cell_mod: "셀 변경", sum_row_add: "행 추가", sum_row_del: "행 삭제", sum_row_mod: "행 수정",
@@ -150,6 +151,7 @@ const STRINGS = {
     worker_bad_content: "diff_engine.py content looks invalid.",
 
     file_type_error: (name) => `${name} can't be read. Only xlsx, xlsm, and xltx files are supported. If it's an old .xls file, save it as .xlsx in Excel first and try again.`,
+    encrypted_file: (name) => `${name} looks password-protected or restricted by corporate DRM (IRM), so it can't be opened in the browser. In Excel, go to File → Info → Protect Workbook, remove the password or access restriction, then save and upload again. If it's a DRM-labeled document from your organization, you may need to ask your admin to remove the protection.`,
     row_limit_hit: (limit) => `The sheet is very large, so only the first ${limit.toLocaleString()} rows were compared. To compare everything, run "python diff_engine.py before.xlsx after.xlsx" in a terminal.`,
 
     sum_cell_mod: "Cells changed", sum_row_add: "Rows added", sum_row_del: "Rows deleted", sum_row_mod: "Rows modified",

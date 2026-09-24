@@ -77,8 +77,13 @@ function startWorker() {
     } else if (data.type === "error") {
       disarmWatchdog();
       overlay(false);
-      if (data.stage) setRuntime(t("error_title", data.stage), "error");
-      fail("error_message", data.stage, data.message);
+      const encrypted = data.message && data.message.match(/ENCRYPTED_FILE:([^\n]+)/);
+      if (encrypted) {
+        fail("encrypted_file", encrypted[1].trim());
+      } else {
+        if (data.stage) setRuntime(t("error_title", data.stage), "error");
+        fail("error_message", data.stage, data.message);
+      }
     }
   };
   worker.onerror = () => {
@@ -147,9 +152,16 @@ function setupWell(well) {
   });
 }
 
-function accept(side, file) {
+const OLE_SIGNATURE = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];   // 암호/DRM 걸린 오피스 파일의 컨테이너 서명
+
+async function accept(side, file) {
   if (!/\.(xlsx|xlsm|xltx)$/i.test(file.name)) {
     fail("file_type_error", file.name);
+    return;
+  }
+  const head = new Uint8Array(await file.slice(0, 8).arrayBuffer());
+  if (OLE_SIGNATURE.every((b, i) => head[i] === b)) {
+    fail("encrypted_file", file.name);
     return;
   }
   clearFail();
