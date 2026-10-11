@@ -365,7 +365,7 @@ function switchLang(next) {
   if (result) { drawSummary(); drawTabs(); drawGrid(); drawList($("#filter").value.trim().toLowerCase()); }
 }
 
-$("#langToggle").addEventListener("click", () => switchLang(lang === "ko" ? "en" : "ko"));
+$("#langToggle").addEventListener("change", (e) => switchLang(e.target.value));
 
 /* ── 시작 ─────────────────────────────────── */
 applyStaticI18n();

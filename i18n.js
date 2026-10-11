@@ -3,7 +3,6 @@
 const STRINGS = {
   ko: {
     page_title: "엑셀 변경점 추적기",
-    lang_toggle: "EN",
     tagline_loading: "파이썬 런타임 준비 중",
 
     well_a_role: "이전 버전",
@@ -93,7 +92,6 @@ const STRINGS = {
 
   en: {
     page_title: "Excel Diff Tracker",
-    lang_toggle: "KO",
     tagline_loading: "Preparing the Python runtime",
 
     well_a_role: "Before",
@@ -180,11 +178,199 @@ const STRINGS = {
     filename_json: "changes.json",
     date_locale: "en-US",
   },
+
+  zh: {
+    page_title: "Excel 变更追踪器",
+    tagline_loading: "正在准备 Python 运行环境",
+
+    well_a_role: "之前",
+    well_b_role: "之后",
+    well_placeholder: "拖拽文件到此处，或点击选择",
+    aria_pick_files: "选择要比较的文件",
+    aria_pick_a: "选择之前版本的文件",
+    aria_pick_b: "选择之后版本的文件",
+    aria_swap: "交换两个文件",
+    btn_swap: "交换",
+
+    opt_compare_label: "比较依据",
+    opt_compare_value: "计算值",
+    opt_compare_formula: "公式",
+    opt_view_label: "视图",
+    opt_view_auto: "自动",
+    opt_view_changes: "仅显示更改",
+    opt_view_all: "全部行",
+    chk_ignore_case: "忽略大小写",
+    chk_ignore_space: "忽略空格",
+    btn_run: "比较",
+
+    hint_default: "文件只会在此浏览器中打开，不会上传到任何地方。",
+
+    tab_grid: "表格视图",
+    tab_list: "更改列表",
+    filter_placeholder: "按值搜索",
+    btn_report: "下载 Excel 报告",
+    btn_json: "下载 JSON",
+    legend_add: "新增",
+    legend_del: "删除",
+    legend_mod: "修改",
+    sheettabs_aria: "工作表",
+    result_view_aria: "结果视图",
+    overlay_default: "准备中…",
+
+    stage_runtime: "正在下载 Python 运行环境",
+    stage_excel_lib: "正在安装 Excel 库",
+    stage_diff_engine: "正在加载比较引擎",
+    stage_ready: "Python 已就绪",
+    overlay_starting: "正在启动…",
+    overlay_reading: "正在读取文件…",
+    overlay_comparing: "正在查找更改…",
+    overlay_report: "正在生成报告…",
+
+    stuck_default_label: "开始",
+    stuck_title: (k) => `卡在「${stageLabel(k)}」步骤`,
+    stuck_message: (k) => `"${stageLabel(k)}" 步骤长时间无响应，已被强制停止（详情请查看浏览器开发者工具控制台）。请刷新页面重试。`,
+    error_title: (k) => `${stageLabel(k)} 失败`,
+    error_message: (k, m) => `${k ? "在「" + stageLabel(k) + "」步骤出错。" : ""}${m}（详情请查看浏览器开发者工具控制台）`,
+    worker_load_fail_title: "无法加载运行环境",
+    worker_load_fail_msg: "无法加载 Python 运行环境。请检查网络连接或尝试刷新页面。",
+    worker_timeout: (l, sec) => `"${l}" 步骤在 ${sec} 秒内未完成。网络可能被阻止。`,
+    worker_fetch_fail: (status) => `无法从服务器获取 diff_engine.py（HTTP ${status}）。请确认它与本页面在同一文件夹中。`,
+    worker_bad_content: "diff_engine.py 的内容似乎不正确。",
+
+    file_type_error: (name) => `无法读取 ${name}。仅支持 xlsx、xlsm、xltx 文件。如果是旧版 .xls 文件，请先在 Excel 中另存为 .xlsx 后重新上传。`,
+    encrypted_file: (name) => `${name} 似乎已设置密码保护，或受公司 DRM（信息权限管理）保护，无法在浏览器中打开。请在 Excel 中依次打开「文件 → 信息 → 保护工作簿」，移除密码或访问限制后重新保存并上传。如果这是组织分发的受 DRM 保护的文档，可能需要请管理员解除保护。`,
+    row_limit_hit: (limit) => `工作表非常大，因此仅比较了前 ${limit.toLocaleString()} 行。如需比较全部内容，请在终端运行 "python diff_engine.py before.xlsx after.xlsx"。`,
+
+    sum_cell_mod: "单元格更改", sum_row_add: "新增行", sum_row_del: "删除行", sum_row_mod: "修改行",
+    sum_col_add: "新增列", sum_col_del: "删除列", sum_sheet_add: "新增工作表", sum_sheet_del: "删除工作表",
+    summary_same: "两个文件内容相同",
+
+    tab_sheet_added: "新工作表",
+    tab_sheet_deleted: "已删除的工作表",
+    tab_count: (n) => `${n} 项`,
+
+    grid_sheet_empty: (name) => `工作表「${name}」为空。`,
+    grid_col_moved_title: (a, b) => `之前第 ${a} 列 → 之后第 ${b} 列`,
+    grid_th_prev: "之前",
+    grid_th_next: "之后",
+    grid_th_prev_title: "之前文件中的行号",
+    grid_th_next_title: "之后文件中的行号",
+    grid_gap_row: (n) => `已折叠 ${n} 行相同内容`,
+    grid_more: (n) => `显示剩余 ${n} 行`,
+
+    list_no_match: "未找到匹配的值。",
+    list_no_changes: "没有单元格的值发生变化。行或列级别的更改请查看表格视图。",
+    list_th_sheet: "工作表", list_th_prev_pos: "之前位置", list_th_next_pos: "之后位置",
+    list_th_prev_val: "之前的值", list_th_next_val: "之后的值",
+
+    filename_report: "差异报告.xlsx",
+    filename_json: "更改.json",
+    date_locale: "zh-CN",
+  },
+
+  es: {
+    page_title: "Rastreador de cambios en Excel",
+    tagline_loading: "Preparando el entorno de Python",
+
+    well_a_role: "Antes",
+    well_b_role: "Después",
+    well_placeholder: "Arrastra un archivo aquí o haz clic para elegirlo",
+    aria_pick_files: "Elige los archivos a comparar",
+    aria_pick_a: "Elige el archivo anterior",
+    aria_pick_b: "Elige el archivo posterior",
+    aria_swap: "Intercambiar los dos archivos",
+    btn_swap: "Intercambiar",
+
+    opt_compare_label: "Comparar por",
+    opt_compare_value: "Valor calculado",
+    opt_compare_formula: "Fórmula",
+    opt_view_label: "Vista",
+    opt_view_auto: "Automática",
+    opt_view_changes: "Solo cambios",
+    opt_view_all: "Todas las filas",
+    chk_ignore_case: "Ignorar mayúsculas/minúsculas",
+    chk_ignore_space: "Ignorar espacios",
+    btn_run: "Comparar",
+
+    hint_default: "Los archivos solo se abren dentro de este navegador. Nunca se envían a ningún lugar.",
+
+    tab_grid: "Vista de tabla",
+    tab_list: "Lista de cambios",
+    filter_placeholder: "Buscar por valor",
+    btn_report: "Descargar informe Excel",
+    btn_json: "Descargar JSON",
+    legend_add: "Añadido",
+    legend_del: "Eliminado",
+    legend_mod: "Modificado",
+    sheettabs_aria: "Hojas",
+    result_view_aria: "Vista de resultados",
+    overlay_default: "Preparando…",
+
+    stage_runtime: "Descargando el entorno de Python",
+    stage_excel_lib: "Instalando la librería de Excel",
+    stage_diff_engine: "Cargando el motor de comparación",
+    stage_ready: "Python listo",
+    overlay_starting: "Iniciando…",
+    overlay_reading: "Leyendo archivos…",
+    overlay_comparing: "Buscando cambios…",
+    overlay_report: "Generando el informe…",
+
+    stuck_default_label: "Inicio",
+    stuck_title: (k) => `Bloqueado en "${stageLabel(k)}"`,
+    stuck_message: (k) => `No hubo respuesta en el paso "${stageLabel(k)}", así que se detuvo forzosamente (hay más detalles en la consola de las herramientas de desarrollador del navegador). Recarga la página e inténtalo de nuevo.`,
+    error_title: (k) => `Fallo en ${stageLabel(k)}`,
+    error_message: (k, m) => `${k ? "Se bloqueó en el paso " + stageLabel(k) + ". " : ""}${m} (hay más detalles en la consola de las herramientas de desarrollador del navegador)`,
+    worker_load_fail_title: "No se pudo cargar el entorno",
+    worker_load_fail_msg: "No se pudo cargar el entorno de Python. Comprueba tu conexión a internet o recarga la página.",
+    worker_timeout: (l, sec) => `El paso "${l}" no terminó en ${sec} s. Puede que la red esté bloqueada.`,
+    worker_fetch_fail: (status) => `No se pudo obtener diff_engine.py del servidor (HTTP ${status}). Comprueba que esté en la misma carpeta.`,
+    worker_bad_content: "El contenido de diff_engine.py no parece válido.",
+
+    file_type_error: (name) => `${name} no se puede leer. Solo se admiten archivos xlsx, xlsm y xltx. Si es un archivo .xls antiguo, guárdalo como .xlsx en Excel y vuelve a subirlo.`,
+    encrypted_file: (name) => `El archivo ${name} parece estar protegido con contraseña o restringido por DRM corporativo (IRM), por lo que no se puede abrir en el navegador. En Excel, ve a Archivo → Información → Proteger libro, quita la contraseña o la restricción de acceso, y vuelve a guardarlo y subirlo. Si es un documento con DRM distribuido por tu organización, es posible que debas pedirle a tu administrador que quite la protección.`,
+    row_limit_hit: (limit) => `La hoja es muy grande, así que solo se compararon las primeras ${limit.toLocaleString()} filas. Para comparar todo, ejecuta "python diff_engine.py antes.xlsx despues.xlsx" en una terminal.`,
+
+    sum_cell_mod: "Celdas modificadas", sum_row_add: "Filas añadidas", sum_row_del: "Filas eliminadas", sum_row_mod: "Filas modificadas",
+    sum_col_add: "Columnas añadidas", sum_col_del: "Columnas eliminadas", sum_sheet_add: "Hojas añadidas", sum_sheet_del: "Hojas eliminadas",
+    summary_same: "Los dos archivos son idénticos",
+
+    tab_sheet_added: "Hoja nueva",
+    tab_sheet_deleted: "Hoja eliminada",
+    tab_count: (n) => `${n}`,
+
+    grid_sheet_empty: (name) => `La hoja "${name}" está vacía.`,
+    grid_col_moved_title: (a, b) => `Columna ${a} (antes) → ${b} (después)`,
+    grid_th_prev: "Antes",
+    grid_th_next: "Después",
+    grid_th_prev_title: "Número de fila en el archivo anterior",
+    grid_th_next_title: "Número de fila en el archivo posterior",
+    grid_gap_row: (n) => `${n} filas sin cambios colapsadas`,
+    grid_more: (n) => `Mostrar ${n} filas más`,
+
+    list_no_match: "No se encontró ningún valor coincidente.",
+    list_no_changes: "No hay celdas con valores modificados. Revisa la vista de tabla para ver cambios de filas o columnas.",
+    list_th_sheet: "Hoja", list_th_prev_pos: "Pos. anterior", list_th_next_pos: "Pos. posterior",
+    list_th_prev_val: "Valor anterior", list_th_next_val: "Valor posterior",
+
+    filename_report: "informe-de-cambios.xlsx",
+    filename_json: "cambios.json",
+    date_locale: "es-ES",
+  },
 };
 
 // Worker 안에서도 그대로 쓸 수 있게(localStorage 없음) 존재 여부부터 확인한다.
-let lang = (typeof localStorage !== "undefined" && localStorage.getItem("lang"))
-  || (typeof navigator !== "undefined" && navigator.language && navigator.language.toLowerCase().startsWith("ko") ? "ko" : "en");
+function detectLang() {
+  if (typeof localStorage !== "undefined") {
+    const saved = localStorage.getItem("lang");
+    if (saved && STRINGS[saved]) return saved;
+  }
+  const nav = typeof navigator !== "undefined" && navigator.language ? navigator.language.toLowerCase() : "";
+  if (nav.startsWith("ko")) return "ko";
+  if (nav.startsWith("zh")) return "zh";
+  if (nav.startsWith("es")) return "es";
+  return "en";
+}
+let lang = detectLang();
 
 function t(key, ...args) {
   const entry = (STRINGS[lang] && STRINGS[lang][key]) ?? STRINGS.ko[key];
@@ -204,5 +390,5 @@ function applyStaticI18n() {
   document.querySelectorAll("[data-i18n-title]").forEach((el) => { el.title = t(el.dataset.i18nTitle); });
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
   const toggle = document.getElementById("langToggle");
-  if (toggle) toggle.textContent = t("lang_toggle");
+  if (toggle) toggle.value = lang;
 }

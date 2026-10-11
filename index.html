@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>엑셀 변경점 추적기 · Excel Diff Tracker</title>
 <meta name="description" content="브라우저 안에서만 두 엑셀 파일을 비교합니다. 파일은 어디로도 전송되지 않습니다. · Compare two Excel files entirely inside your browser — nothing is ever uploaded anywhere.">
+<meta name="keywords" content="whathaschanged-difftracker, 엑셀 변경점 추적기, 엑셀 비교, excel diff tracker, excel diff tool, compare excel files">
 <meta property="og:title" content="엑셀 변경점 추적기 · Excel Diff Tracker">
 <meta property="og:description" content="브라우저 안에서만 동작하는 무료 엑셀 비교 도구. A free Excel diff tool that runs 100% client-side.">
 <meta property="og:type" content="website">
@@ -20,7 +21,12 @@
 <header class="bar">
   <h1 data-i18n="page_title">엑셀 변경점 추적기</h1>
   <p class="tag" id="runtime" data-state="loading" data-i18n="tagline_loading">파이썬 런타임 준비 중</p>
-  <button type="button" id="langToggle" class="ghost lang-toggle" title="Switch language / 언어 전환">EN</button>
+  <select id="langToggle" class="ghost lang-toggle" title="Switch language / 언어 전환">
+    <option value="ko">한국어</option>
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="es">Español</option>
+  </select>
 </header>
 
 <main>
