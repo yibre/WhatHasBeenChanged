@@ -3,6 +3,8 @@
 const STRINGS = {
   ko: {
     page_title: "엑셀 변경점 추적기",
+    apptab_excel: "Excel Diff Tracker",
+    apptab_word: "Word Diff Tracker",
     tagline_loading: "파이썬 런타임 준비 중",
 
     well_a_role: "이전 버전",
@@ -56,12 +58,16 @@ const STRINGS = {
     worker_load_fail_title: "런타임을 불러오지 못함",
     worker_load_fail_msg: "파이썬 런타임을 불러오지 못했습니다. 인터넷 연결을 확인하거나 페이지를 새로고침해 보세요.",
     worker_timeout: (l, sec) => `${l} 단계가 ${sec}초 안에 끝나지 않았습니다. 네트워크가 막혀 있을 수 있습니다.`,
-    worker_fetch_fail: (status) => `diff_engine.py를 서버에서 받지 못했습니다 (HTTP ${status}). 같은 폴더에 있는지 확인하세요.`,
-    worker_bad_content: "diff_engine.py 내용이 올바르지 않습니다.",
+    worker_fetch_fail: (status, file) => `${file}를 서버에서 받지 못했습니다 (HTTP ${status}). 같은 폴더에 있는지 확인하세요.`,
+    worker_bad_content: (file) => `${file} 내용이 올바르지 않습니다.`,
 
     file_type_error: (name) => `${name}은(는) 읽을 수 없습니다. xlsx, xlsm, xltx 파일만 비교할 수 있습니다. 예전 xls 파일은 엑셀에서 xlsx로 저장한 뒤 다시 올려주세요.`,
     encrypted_file: (name) => `${name} 파일은 암호가 걸려 있거나 회사 DRM(정보 관리·IRM)으로 보호되어 있어서 브라우저에서 열 수 없습니다. 엑셀에서 파일 → 정보 → 통합 문서 보호 메뉴로 암호나 액세스 제한을 해제한 뒤 다시 저장해서 올려주세요. 조직에서 배포한 문서라면 관리자에게 보호 해제를 요청해야 할 수도 있습니다.`,
     row_limit_hit: (limit) => `시트가 매우 커서 앞쪽 ${limit.toLocaleString()}행까지만 비교했습니다. 전체를 비교하려면 터미널에서 python diff_engine.py 이전.xlsx 이후.xlsx 를 실행하세요.`,
+
+    file_type_error_word: (name) => `${name}은(는) 읽을 수 없습니다. docx, docm, dotx 파일만 비교할 수 있습니다. 예전 doc 파일은 워드에서 docx로 저장한 뒤 다시 올려주세요.`,
+    encrypted_file_word: (name) => `${name} 파일은 암호가 걸려 있거나 회사 DRM(정보 관리·IRM)으로 보호되어 있어서 브라우저에서 열 수 없습니다. 워드에서 파일 → 정보 → 문서 보호 메뉴로 암호나 액세스 제한을 해제한 뒤 다시 저장해서 올려주세요. 조직에서 배포한 문서라면 관리자에게 보호 해제를 요청해야 할 수도 있습니다.`,
+    para_limit_hit: (limit) => `문서가 매우 커서 앞쪽 ${limit.toLocaleString()}개 문단까지만 비교했습니다.`,
 
     sum_cell_mod: "셀 변경", sum_row_add: "행 추가", sum_row_del: "행 삭제", sum_row_mod: "행 수정",
     sum_col_add: "열 추가", sum_col_del: "열 삭제", sum_sheet_add: "시트 추가", sum_sheet_del: "시트 삭제",
@@ -88,10 +94,21 @@ const STRINGS = {
     filename_report: "변경점리포트.xlsx",
     filename_json: "변경점.json",
     date_locale: "ko-KR",
+
+    tab_doc: "문서 보기",
+    sum_para_add: "문단 추가", sum_para_del: "문단 삭제", sum_para_mod: "문단 수정",
+    sum_word_add: "단어 추가", sum_word_del: "단어 삭제",
+    word_table_row_label: "표",
+    word_doc_empty: "문서에 내용이 없습니다.",
+    word_gap: (n) => `동일한 ${n}개 단락 접힘`,
+    word_more: (n) => `남은 ${n}개 더 보기`,
+    filename_json_word: "문서변경점.json",
   },
 
   en: {
     page_title: "Excel Diff Tracker",
+    apptab_excel: "Excel Diff Tracker",
+    apptab_word: "Word Diff Tracker",
     tagline_loading: "Preparing the Python runtime",
 
     well_a_role: "Before",
@@ -145,12 +162,16 @@ const STRINGS = {
     worker_load_fail_title: "Couldn't load the runtime",
     worker_load_fail_msg: "Couldn't load the Python runtime. Check your internet connection or try reloading the page.",
     worker_timeout: (l, sec) => `The "${l}" step didn't finish within ${sec}s. The network might be blocked.`,
-    worker_fetch_fail: (status) => `Couldn't fetch diff_engine.py from the server (HTTP ${status}). Make sure it's in the same folder.`,
-    worker_bad_content: "diff_engine.py content looks invalid.",
+    worker_fetch_fail: (status, file) => `Couldn't fetch ${file} from the server (HTTP ${status}). Make sure it's in the same folder.`,
+    worker_bad_content: (file) => `${file} content looks invalid.`,
 
     file_type_error: (name) => `${name} can't be read. Only xlsx, xlsm, and xltx files are supported. If it's an old .xls file, save it as .xlsx in Excel first and try again.`,
     encrypted_file: (name) => `${name} looks password-protected or restricted by corporate DRM (IRM), so it can't be opened in the browser. In Excel, go to File → Info → Protect Workbook, remove the password or access restriction, then save and upload again. If it's a DRM-labeled document from your organization, you may need to ask your admin to remove the protection.`,
     row_limit_hit: (limit) => `The sheet is very large, so only the first ${limit.toLocaleString()} rows were compared. To compare everything, run "python diff_engine.py before.xlsx after.xlsx" in a terminal.`,
+
+    file_type_error_word: (name) => `${name} can't be read. Only docx, docm, and dotx files are supported. If it's an old .doc file, save it as .docx in Word first and try again.`,
+    encrypted_file_word: (name) => `${name} looks password-protected or restricted by corporate DRM (IRM), so it can't be opened in the browser. In Word, go to File → Info → Protect Document, remove the password or access restriction, then save and upload again. If it's a DRM-labeled document from your organization, you may need to ask your admin to remove the protection.`,
+    para_limit_hit: (limit) => `The document is very large, so only the first ${limit.toLocaleString()} paragraphs were compared.`,
 
     sum_cell_mod: "Cells changed", sum_row_add: "Rows added", sum_row_del: "Rows deleted", sum_row_mod: "Rows modified",
     sum_col_add: "Columns added", sum_col_del: "Columns deleted", sum_sheet_add: "Sheets added", sum_sheet_del: "Sheets deleted",
@@ -177,10 +198,21 @@ const STRINGS = {
     filename_report: "diff-report.xlsx",
     filename_json: "changes.json",
     date_locale: "en-US",
+
+    tab_doc: "Document view",
+    sum_para_add: "Paragraphs added", sum_para_del: "Paragraphs deleted", sum_para_mod: "Paragraphs modified",
+    sum_word_add: "Words added", sum_word_del: "Words deleted",
+    word_table_row_label: "Table",
+    word_doc_empty: "The document has no content.",
+    word_gap: (n) => `${n} unchanged paragraphs collapsed`,
+    word_more: (n) => `Show ${n} more`,
+    filename_json_word: "word-diff.json",
   },
 
   zh: {
     page_title: "Excel 变更追踪器",
+    apptab_excel: "Excel Diff Tracker",
+    apptab_word: "Word Diff Tracker",
     tagline_loading: "正在准备 Python 运行环境",
 
     well_a_role: "之前",
@@ -234,12 +266,16 @@ const STRINGS = {
     worker_load_fail_title: "无法加载运行环境",
     worker_load_fail_msg: "无法加载 Python 运行环境。请检查网络连接或尝试刷新页面。",
     worker_timeout: (l, sec) => `"${l}" 步骤在 ${sec} 秒内未完成。网络可能被阻止。`,
-    worker_fetch_fail: (status) => `无法从服务器获取 diff_engine.py（HTTP ${status}）。请确认它与本页面在同一文件夹中。`,
-    worker_bad_content: "diff_engine.py 的内容似乎不正确。",
+    worker_fetch_fail: (status, file) => `无法从服务器获取 ${file}（HTTP ${status}）。请确认它与本页面在同一文件夹中。`,
+    worker_bad_content: (file) => `${file} 的内容似乎不正确。`,
 
     file_type_error: (name) => `无法读取 ${name}。仅支持 xlsx、xlsm、xltx 文件。如果是旧版 .xls 文件，请先在 Excel 中另存为 .xlsx 后重新上传。`,
     encrypted_file: (name) => `${name} 似乎已设置密码保护，或受公司 DRM（信息权限管理）保护，无法在浏览器中打开。请在 Excel 中依次打开「文件 → 信息 → 保护工作簿」，移除密码或访问限制后重新保存并上传。如果这是组织分发的受 DRM 保护的文档，可能需要请管理员解除保护。`,
     row_limit_hit: (limit) => `工作表非常大，因此仅比较了前 ${limit.toLocaleString()} 行。如需比较全部内容，请在终端运行 "python diff_engine.py before.xlsx after.xlsx"。`,
+
+    file_type_error_word: (name) => `无法读取 ${name}。仅支持 docx、docm、dotx 文件。如果是旧版 .doc 文件，请先在 Word 中另存为 .docx 后重新上传。`,
+    encrypted_file_word: (name) => `${name} 似乎已设置密码保护，或受公司 DRM（信息权限管理）保护，无法在浏览器中打开。请在 Word 中依次打开「文件 → 信息 → 保护文档」，移除密码或访问限制后重新保存并上传。如果这是组织分发的受 DRM 保护的文档，可能需要请管理员解除保护。`,
+    para_limit_hit: (limit) => `文档非常大，因此仅比较了前 ${limit.toLocaleString()} 个段落。`,
 
     sum_cell_mod: "单元格更改", sum_row_add: "新增行", sum_row_del: "删除行", sum_row_mod: "修改行",
     sum_col_add: "新增列", sum_col_del: "删除列", sum_sheet_add: "新增工作表", sum_sheet_del: "删除工作表",
@@ -266,10 +302,21 @@ const STRINGS = {
     filename_report: "差异报告.xlsx",
     filename_json: "更改.json",
     date_locale: "zh-CN",
+
+    tab_doc: "文档视图",
+    sum_para_add: "新增段落", sum_para_del: "删除段落", sum_para_mod: "修改段落",
+    sum_word_add: "新增字词", sum_word_del: "删除字词",
+    word_table_row_label: "表格",
+    word_doc_empty: "文档没有内容。",
+    word_gap: (n) => `已折叠 ${n} 个相同段落`,
+    word_more: (n) => `显示剩余 ${n} 项`,
+    filename_json_word: "文档差异.json",
   },
 
   es: {
     page_title: "Rastreador de cambios en Excel",
+    apptab_excel: "Excel Diff Tracker",
+    apptab_word: "Word Diff Tracker",
     tagline_loading: "Preparando el entorno de Python",
 
     well_a_role: "Antes",
@@ -323,12 +370,16 @@ const STRINGS = {
     worker_load_fail_title: "No se pudo cargar el entorno",
     worker_load_fail_msg: "No se pudo cargar el entorno de Python. Comprueba tu conexión a internet o recarga la página.",
     worker_timeout: (l, sec) => `El paso "${l}" no terminó en ${sec} s. Puede que la red esté bloqueada.`,
-    worker_fetch_fail: (status) => `No se pudo obtener diff_engine.py del servidor (HTTP ${status}). Comprueba que esté en la misma carpeta.`,
-    worker_bad_content: "El contenido de diff_engine.py no parece válido.",
+    worker_fetch_fail: (status, file) => `No se pudo obtener ${file} del servidor (HTTP ${status}). Comprueba que esté en la misma carpeta.`,
+    worker_bad_content: (file) => `El contenido de ${file} no parece válido.`,
 
     file_type_error: (name) => `${name} no se puede leer. Solo se admiten archivos xlsx, xlsm y xltx. Si es un archivo .xls antiguo, guárdalo como .xlsx en Excel y vuelve a subirlo.`,
     encrypted_file: (name) => `El archivo ${name} parece estar protegido con contraseña o restringido por DRM corporativo (IRM), por lo que no se puede abrir en el navegador. En Excel, ve a Archivo → Información → Proteger libro, quita la contraseña o la restricción de acceso, y vuelve a guardarlo y subirlo. Si es un documento con DRM distribuido por tu organización, es posible que debas pedirle a tu administrador que quite la protección.`,
     row_limit_hit: (limit) => `La hoja es muy grande, así que solo se compararon las primeras ${limit.toLocaleString()} filas. Para comparar todo, ejecuta "python diff_engine.py antes.xlsx despues.xlsx" en una terminal.`,
+
+    file_type_error_word: (name) => `${name} no se puede leer. Solo se admiten archivos docx, docm y dotx. Si es un archivo .doc antiguo, guárdalo como .docx en Word y vuelve a subirlo.`,
+    encrypted_file_word: (name) => `El archivo ${name} parece estar protegido con contraseña o restringido por DRM corporativo (IRM), por lo que no se puede abrir en el navegador. En Word, ve a Archivo → Información → Proteger documento, quita la contraseña o la restricción de acceso, y vuelve a guardarlo y subirlo. Si es un documento con DRM distribuido por tu organización, es posible que debas pedirle a tu administrador que quite la protección.`,
+    para_limit_hit: (limit) => `El documento es muy grande, así que solo se compararon los primeros ${limit.toLocaleString()} párrafos.`,
 
     sum_cell_mod: "Celdas modificadas", sum_row_add: "Filas añadidas", sum_row_del: "Filas eliminadas", sum_row_mod: "Filas modificadas",
     sum_col_add: "Columnas añadidas", sum_col_del: "Columnas eliminadas", sum_sheet_add: "Hojas añadidas", sum_sheet_del: "Hojas eliminadas",
@@ -355,6 +406,15 @@ const STRINGS = {
     filename_report: "informe-de-cambios.xlsx",
     filename_json: "cambios.json",
     date_locale: "es-ES",
+
+    tab_doc: "Vista de documento",
+    sum_para_add: "Párrafos añadidos", sum_para_del: "Párrafos eliminados", sum_para_mod: "Párrafos modificados",
+    sum_word_add: "Palabras añadidas", sum_word_del: "Palabras eliminadas",
+    word_table_row_label: "Tabla",
+    word_doc_empty: "El documento no tiene contenido.",
+    word_gap: (n) => `${n} párrafos sin cambios colapsados`,
+    word_more: (n) => `Mostrar ${n} más`,
+    filename_json_word: "diferencias-word.json",
   },
 };
 

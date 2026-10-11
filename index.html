@@ -29,7 +29,13 @@
   </select>
 </header>
 
+<nav class="apptabs" aria-label="도구 선택">
+  <button type="button" class="apptab on" data-app="excel" data-i18n="apptab_excel">Excel Diff Tracker</button>
+  <button type="button" class="apptab" data-app="word" data-i18n="apptab_word">Word Diff Tracker</button>
+</nav>
+
 <main>
+<section class="app" id="appExcel">
   <!-- 파일 두 개 -->
   <section class="stage" aria-label="비교할 파일 선택" data-i18n-aria="aria_pick_files">
     <div class="well" id="wellA" data-side="a" tabindex="0" role="button" aria-label="이전 버전 파일 선택" data-i18n-aria="aria_pick_a">
@@ -82,8 +88,8 @@
 
     <div class="toolbar">
       <div class="tabs" role="tablist" aria-label="결과 보기 방식" data-i18n-aria="result_view_aria">
-        <button type="button" class="tab on" data-view="grid" role="tab" data-i18n="tab_grid">표로 보기</button>
-        <button type="button" class="tab" data-view="list" role="tab" data-i18n="tab_list">변경 목록</button>
+        <button type="button" class="tab on" data-view="grid" data-target="gridWrap" role="tab" data-i18n="tab_grid">표로 보기</button>
+        <button type="button" class="tab" data-view="list" data-target="listWrap" role="tab" data-i18n="tab_list">변경 목록</button>
       </div>
       <div class="spacer"></div>
       <input type="search" id="filter" placeholder="값으로 찾기" hidden data-i18n-placeholder="filter_placeholder">
@@ -102,6 +108,66 @@
 
     <nav class="sheettabs" id="sheettabs" aria-label="시트" data-i18n-aria="sheettabs_aria"></nav>
   </section>
+</section>
+
+<section class="app" id="appWord" hidden>
+  <!-- 파일 두 개 -->
+  <section class="stage" aria-label="비교할 파일 선택" data-i18n-aria="aria_pick_files">
+    <div class="well" id="wellWordA" data-side="a" tabindex="0" role="button" aria-label="이전 버전 파일 선택" data-i18n-aria="aria_pick_a">
+      <span class="well-role" data-i18n="well_a_role">이전 버전</span>
+      <span class="well-name" data-i18n="well_placeholder">파일을 끌어다 놓거나 눌러서 선택</span>
+      <span class="well-meta"></span>
+      <input type="file" accept=".docx,.docm,.dotx" hidden>
+    </div>
+
+    <div class="gutter">
+      <svg viewBox="0 0 24 48" aria-hidden="true"><path d="M4 24h14M13 18l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <button type="button" id="swapWord" class="ghost" title="두 파일 위치 바꾸기" data-i18n="btn_swap" data-i18n-title="aria_swap">위치 바꾸기</button>
+    </div>
+
+    <div class="well" id="wellWordB" data-side="b" tabindex="0" role="button" aria-label="이후 버전 파일 선택" data-i18n-aria="aria_pick_b">
+      <span class="well-role" data-i18n="well_b_role">이후 버전</span>
+      <span class="well-name" data-i18n="well_placeholder">파일을 끌어다 놓거나 눌러서 선택</span>
+      <span class="well-meta"></span>
+      <input type="file" accept=".docx,.docm,.dotx" hidden>
+    </div>
+  </section>
+
+  <!-- 옵션 -->
+  <section class="controls">
+    <div class="opts">
+      <label class="check"><input type="checkbox" id="optCaseWord"> <span data-i18n="chk_ignore_case">대소문자 무시</span></label>
+      <label class="check"><input type="checkbox" id="optSpaceWord"> <span data-i18n="chk_ignore_space">공백 무시</span></label>
+    </div>
+    <button type="button" id="runWord" class="primary" disabled data-i18n="btn_run">변경점 비교</button>
+  </section>
+
+  <p class="note" id="hintWord" data-i18n="hint_default">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
+
+  <!-- 결과 -->
+  <section id="resultWord" hidden>
+    <div class="summary" id="summaryWord"></div>
+
+    <div class="toolbar">
+      <div class="tabs" role="tablist" aria-label="결과 보기 방식" data-i18n-aria="result_view_aria">
+        <button type="button" class="tab on" data-view="doc" data-target="wordDocWrap" role="tab" data-i18n="tab_doc">문서 보기</button>
+        <button type="button" class="tab" data-view="list" data-target="wordListWrap" role="tab" data-i18n="tab_list">변경 목록</button>
+      </div>
+      <div class="spacer"></div>
+      <input type="search" id="filterWord" placeholder="값으로 찾기" hidden data-i18n-placeholder="filter_placeholder">
+      <button type="button" id="dlJsonWord" class="ghost" data-i18n="btn_json">JSON 저장</button>
+    </div>
+
+    <div class="legend">
+      <span class="k add" data-i18n="legend_add">추가</span>
+      <span class="k del" data-i18n="legend_del">삭제</span>
+      <span class="k mod" data-i18n="legend_mod">수정</span>
+    </div>
+
+    <div class="viewport docview" id="wordDocWrap"></div>
+    <div class="viewport" id="wordListWrap" hidden></div>
+  </section>
+</section>
 </main>
 
 <div class="overlay" id="overlay" hidden>
@@ -112,5 +178,6 @@
 </div>
 
 <script src="app.js"></script>
+<script src="app_word.js"></script>
 </body>
 </html>

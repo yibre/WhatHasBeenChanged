@@ -9,6 +9,7 @@ const CDN = "pyodide/";
 
 let pyodide = null;
 let engine = null;
+let wordEngine = null;
 
 const say = (stageKey) => {
   console.log("[엑셀 diff]", stageKey);
@@ -79,41 +80,49 @@ async function boot() {
   await step("excel_lib", 120000, installOpenpyxl);
 
   await step("diff_engine", 30000, async () => {
-    const res = await fetch("diff_engine.py", { cache: "no-store" });
-    if (!res.ok) throw new Error(t("worker_fetch_fail", res.status));
-    const src = await res.text();
-    if (!src.includes("def compare")) throw new Error(t("worker_bad_content"));
-
     pyodide.FS.mkdirTree("/lib/exceldiff");
-    pyodide.FS.writeFile("/lib/exceldiff/diff_engine.py", src);
     pyodide.runPython("import sys; sys.path.insert(0, '/lib/exceldiff')");
-    engine = pyodide.pyimport("diff_engine");
+
+    const load = async (filename, varName) => {
+      const res = await fetch(filename, { cache: "no-store" });
+      if (!res.ok) throw new Error(t("worker_fetch_fail", res.status, filename));
+      const src = await res.text();
+      if (!src.includes("def compare")) throw new Error(t("worker_bad_content", filename));
+      pyodide.FS.writeFile(`/lib/exceldiff/${filename}`, src);
+      return pyodide.pyimport(varName);
+    };
+
+    engine = await load("diff_engine.py", "diff_engine");
+    wordEngine = await load("diff_engine_word.py", "diff_engine_word");
   });
 
   postMessage({ type: "ready", version: String(pyodide.version) });
 }
 
 onmessage = async (ev) => {
-  const { type, id } = ev.data;
+  const { type, id, kind } = ev.data;
   try {
     if (type === "init") {
       if (ev.data.lang) lang = ev.data.lang;
       await boot();
     } else if (type === "reset") {
-      engine && engine.reset();
+      if (kind === "word") wordEngine && wordEngine.reset();
+      else engine && engine.reset();
     } else if (type === "compare") {
       const { a, b, nameA, nameB, options } = ev.data;
-      const json = engine.compare(a, b, JSON.stringify(options), nameA, nameB);
-      postMessage({ type: "result", id, json: String(json) });
+      const eng = kind === "word" ? wordEngine : engine;
+      const json = eng.compare(a, b, JSON.stringify(options), nameA, nameB);
+      postMessage({ type: "result", id, kind, json: String(json) });
     } else if (type === "report") {
-      postMessage({ type: "report", id, b64: String(engine.report_b64()) });
+      postMessage({ type: "report", id, kind, b64: String(engine.report_b64()) });
     }
   } catch (err) {
     const detail = String((err && err.message) || err);
-    console.error("[엑셀 diff] 오류", err);
+    console.error("[diff]", kind || "excel", "오류", err);
     postMessage({
       type: "error",
       id,
+      kind,
       stage: (err && err.stage) || "",
       message: detail.split("\n").slice(-6).join("\n"),
     });

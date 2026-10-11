@@ -63,10 +63,12 @@ function startWorker() {
       setRuntime(t("stage_ready"), "ready");
       overlay(false);
       refreshRunButton();
+      refreshRunButtonWord();
     } else if (data.type === "result") {
       disarmWatchdog();
       overlay(false);
-      render(JSON.parse(data.json));
+      if (data.kind === "word") renderWord(JSON.parse(data.json));
+      else render(JSON.parse(data.json));
     } else if (data.type === "report") {
       disarmWatchdog();
       overlay(false);
@@ -78,7 +80,13 @@ function startWorker() {
       disarmWatchdog();
       overlay(false);
       const encrypted = data.message && data.message.match(/ENCRYPTED_FILE:([^\n]+)/);
-      if (encrypted) {
+      if (data.kind === "word") {
+        if (encrypted) failWord("encrypted_file_word", encrypted[1].trim());
+        else {
+          if (data.stage) setRuntime(t("error_title", data.stage), "error");
+          failWord("error_message", data.stage, data.message);
+        }
+      } else if (encrypted) {
         fail("encrypted_file", encrypted[1].trim());
       } else {
         if (data.stage) setRuntime(t("error_title", data.stage), "error");
@@ -167,7 +175,7 @@ async function accept(side, file) {
   clearFail();
   files[side] = file;
   paint(side);
-  worker && worker.postMessage({ type: "reset" });
+  worker && worker.postMessage({ type: "reset", kind: "excel" });
   refreshRunButton();
 }
 
@@ -186,7 +194,7 @@ const refreshRunButton = () => { $("#run").disabled = !(ready && files.a && file
 $("#swap").addEventListener("click", () => {
   [files.a, files.b] = [files.b, files.a];
   paint("a"); paint("b");
-  worker && worker.postMessage({ type: "reset" });
+  worker && worker.postMessage({ type: "reset", kind: "excel" });
   refreshRunButton();
 });
 
@@ -199,7 +207,7 @@ $("#run").addEventListener("click", async () => {
   overlay(true, t("overlay_comparing"));
   const ua = new Uint8Array(a), ub = new Uint8Array(b);
   worker.postMessage({
-    type: "compare", id: ++seq,
+    type: "compare", kind: "excel", id: ++seq,
     a: ua, b: ub,
     nameA: files.a.name, nameB: files.b.name,
     options: {
@@ -316,17 +324,22 @@ function drawList(q = "") {
         <td class="o">${esc(c.o)}</td><td class="n">${esc(c.n)}</td></tr>`).join("")}</tbody></table>`;
 }
 
-/* ── 보기 전환·저장 ─────────────────────────── */
-document.querySelectorAll(".tab").forEach((tab) =>
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === tab));
-    const list = tab.dataset.view === "list";
-    $("#gridWrap").hidden = list;
-    $("#listWrap").hidden = !list;
-    $("#sheettabs").hidden = list;
-    $("#filter").hidden = !list;
-    $(".legend").hidden = list;
-  }));
+/* ── 보기 전환·저장 (엑셀/워드 결과 영역 공용) ──── */
+document.querySelectorAll(".tabs").forEach((group) => {
+  const scope = group.closest("section");
+  group.querySelectorAll(".tab").forEach((tab) =>
+    tab.addEventListener("click", () => {
+      group.querySelectorAll(".tab").forEach((x) => x.classList.toggle("on", x === tab));
+      scope.querySelectorAll(".viewport").forEach((vp) => { vp.hidden = vp.id !== tab.dataset.target; });
+      const isList = tab.dataset.view === "list";
+      const filterInput = scope.querySelector("input[type=search]");
+      if (filterInput) filterInput.hidden = !isList;
+      const legend = scope.querySelector(".legend");
+      if (legend) legend.hidden = isList;
+      const sheettabs = scope.querySelector(".sheettabs");
+      if (sheettabs) sheettabs.hidden = isList;
+    }));
+});
 
 $("#filter").addEventListener("input", (e) => drawList(e.target.value.trim().toLowerCase()));
 
@@ -363,9 +376,18 @@ function switchLang(next) {
     if (!$("#overlay").hidden) $("#overlayText").textContent = label;
   }
   if (result) { drawSummary(); drawTabs(); drawGrid(); drawList($("#filter").value.trim().toLowerCase()); }
+  onLangSwitchWord();
 }
 
 $("#langToggle").addEventListener("change", (e) => switchLang(e.target.value));
+
+/* ── 상단 탭(엑셀/워드) ─────────────────────── */
+document.querySelectorAll(".apptab").forEach((tab) =>
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".apptab").forEach((x) => x.classList.toggle("on", x === tab));
+    $("#appExcel").hidden = tab.dataset.app !== "excel";
+    $("#appWord").hidden = tab.dataset.app !== "word";
+  }));
 
 /* ── 시작 ─────────────────────────────────── */
 applyStaticI18n();

@@ -28,6 +28,7 @@ body{
 }
 button,input,select{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--deep);outline-offset:2px}
+[hidden]{display:none !important}
 
 /* ── 상단 바 ───────────────────────────────── */
 .bar{
@@ -48,6 +49,20 @@ button,input,select{font:inherit;color:inherit}
 .lang-toggle{margin-left:auto;font-size:.8125rem;padding:.35rem .7rem}
 .tag[data-state="ready"]::before{background:var(--add)}
 .tag[data-state="error"]::before{background:var(--del)}
+
+/* ── 상단 탭(엑셀/워드) ─────────────────────── */
+.apptabs{
+  display:flex;gap:0;
+  background:var(--surface);border-bottom:1px solid var(--rule);
+  padding:0 1.5rem;
+}
+.apptab{
+  background:transparent;border:0;border-bottom:2px solid transparent;
+  padding:.7rem 1.1rem;font-size:.875rem;font-weight:500;color:var(--muted);
+  margin-bottom:-1px;
+}
+.apptab.on{color:var(--deep);border-bottom-color:var(--deep)}
+.apptab:hover{color:var(--deep)}
 
 main{max-width:1400px;margin:0 auto;padding:1.5rem}
 
@@ -215,6 +230,28 @@ tbody tr:hover td:not(.gut){filter:brightness(.985)}
 .list td.addr{font-size:.75rem;color:var(--muted);white-space:nowrap}
 .list td.o{color:var(--del)} .list td.n{color:var(--add)}
 
+/* ── 워드 문서 보기(변경 내용 추적 느낌) ───────── */
+.docview{
+  padding:1.5rem 2rem;max-width:760px;margin:0 auto;
+  font-size:.9375rem;line-height:1.75;
+}
+.docview .wp{margin:0 0 .85rem;padding:.1rem .6rem;border-radius:2px}
+.docview .wp.add{background:var(--add-bg);box-shadow:inset 2px 0 0 var(--add-edge)}
+.docview .wp.del{background:var(--del-bg);box-shadow:inset 2px 0 0 var(--del-edge);opacity:.85}
+.docview .wp.mod{background:var(--mod-bg);box-shadow:inset 2px 0 0 var(--mod-edge)}
+.docview .wp ins{background:var(--add-bg);color:var(--add);text-decoration:underline;text-decoration-color:var(--add-edge)}
+.docview .wp del{background:var(--del-bg);color:var(--del);text-decoration:line-through}
+.docview .rowtag{
+  display:inline-block;margin-right:.5rem;padding:.05rem .4rem;
+  font-family:var(--mono);font-size:.6875rem;color:var(--muted);
+  background:var(--rule-soft);border-radius:2px;vertical-align:middle;
+}
+.docview .wgap{
+  margin:.5rem 0;color:var(--muted);font-size:.8125rem;text-align:center;
+  border-top:1px dashed var(--rule);border-bottom:1px dashed var(--rule);
+  padding:.4rem 0;
+}
+
 /* ── 시트 탭(엑셀처럼 아래) ──────────────────── */
 .sheettabs{
   display:flex;gap:2px;overflow-x:auto;
@@ -242,7 +279,6 @@ tbody tr:hover td:not(.gut){filter:brightness(.985)}
   background:rgba(238,241,240,.86);
   display:flex;align-items:center;justify-content:center;
 }
-.overlay[hidden]{display:none}
 .panel{
   background:var(--surface);border:1px solid var(--rule);
   padding:1.5rem 2rem;text-align:center;min-width:260px;
