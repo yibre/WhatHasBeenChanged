@@ -109,6 +109,7 @@ $("#runWord").addEventListener("click", async () => {
 function renderWord(res) {
   wordResult = res;
   wordShown = RENDER_CAP;
+  $("#sampleWord").hidden = true;
   $("#resultWord").hidden = false;
   drawWordSummary();
   drawWordDoc();

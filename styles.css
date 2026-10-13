@@ -127,6 +127,16 @@ button{cursor:pointer;border-radius:0}
 .note{font-size:.8125rem;color:var(--muted);margin:.7rem .2rem 0}
 .note.bad{color:var(--del)}
 
+/* ── 예시 결과 ─────────────────────────────── */
+.sample{margin-top:1.5rem;border:1px dashed var(--rule);padding:1rem;opacity:.92}
+.sample-label{
+  display:inline-block;margin:0 0 .85rem;padding:.3rem .7rem;
+  background:var(--deep-soft);color:var(--deep);
+  font-size:.75rem;font-weight:500;
+}
+.sample .summary,.sample .viewport{pointer-events:none}
+.sample .viewport{max-height:none}
+
 /* ── 요약 ─────────────────────────────────── */
 #result{margin-top:1.5rem}
 .summary{

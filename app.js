@@ -227,6 +227,7 @@ function render(res) {
   shown = RENDER_CAP;
   activeSheet = res.sheets.findIndex((s) => s.status !== "same");
   if (activeSheet < 0) activeSheet = 0;
+  $("#sampleExcel").hidden = true;
   $("#result").hidden = false;
   drawSummary();
   drawTabs();

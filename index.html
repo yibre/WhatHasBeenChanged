@@ -82,6 +82,28 @@
 
   <p class="note" id="hint" data-i18n="hint_default">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
 
+  <!-- 예시 -->
+  <section class="sample" id="sampleExcel" aria-hidden="true">
+    <p class="sample-label" data-i18n="sample_label">예시 결과 — 파일을 넣으면 이 자리에 실제 비교 결과가 나타납니다</p>
+    <div class="summary">
+      <div class="stat mod"><b>3</b><span data-i18n="sum_cell_mod">셀 변경</span></div>
+      <div class="stat add"><b>1</b><span data-i18n="sum_row_add">행 추가</span></div>
+      <div class="stat del"><b>1</b><span data-i18n="sum_row_del">행 삭제</span></div>
+    </div>
+    <div class="viewport">
+      <table class="grid">
+        <thead><tr><th class="gut a" data-i18n="grid_th_prev">이전</th><th class="gut b" data-i18n="grid_th_next">이후</th><th>A</th><th>B</th><th>C</th></tr></thead>
+        <tbody>
+          <tr><td class="gut a">1</td><td class="gut b">1</td><td data-i18n="sample_xl_col_a">상품명</td><td data-i18n="sample_xl_col_b">단가</td><td data-i18n="sample_xl_col_c">수량</td></tr>
+          <tr class="mod"><td class="gut a">2</td><td class="gut b">2</td><td data-i18n="sample_xl_item1">사과</td><td class="cmod"><span class="was">1,200</span><span class="now">1,500</span></td><td>10</td></tr>
+          <tr><td class="gut a">3</td><td class="gut b">3</td><td data-i18n="sample_xl_item2">바나나</td><td>900</td><td>20</td></tr>
+          <tr class="add"><td class="gut a"></td><td class="gut b">4</td><td data-i18n="sample_xl_item3">딸기</td><td>3,000</td><td>5</td></tr>
+          <tr class="del"><td class="gut a">4</td><td class="gut b"></td><td data-i18n="sample_xl_item4">포도</td><td>2,500</td><td>8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <!-- 결과 -->
   <section id="result" hidden>
     <div class="summary" id="summary"></div>
@@ -143,6 +165,20 @@
   </section>
 
   <p class="note" id="hintWord" data-i18n="hint_default">파일은 이 브라우저 안에서만 열립니다. 어디로도 전송되지 않습니다.</p>
+
+  <!-- 예시 -->
+  <section class="sample" id="sampleWord" aria-hidden="true">
+    <p class="sample-label" data-i18n="sample_label">예시 결과 — 파일을 넣으면 이 자리에 실제 비교 결과가 나타납니다</p>
+    <div class="summary">
+      <div class="stat add"><b>1</b><span data-i18n="sum_para_add">문단 추가</span></div>
+      <div class="stat mod"><b>1</b><span data-i18n="sum_para_mod">문단 수정</span></div>
+    </div>
+    <div class="viewport docview">
+      <p class="wp mod" id="sampleWordMod"></p>
+      <p class="wp" data-i18n="sample_wd_same">신규 고객 유치가 활발했습니다.</p>
+      <p class="wp add" data-i18n="sample_wd_add">비용 절감 노력도 성과를 거뒀습니다.</p>
+    </div>
+  </section>
 
   <!-- 결과 -->
   <section id="resultWord" hidden>

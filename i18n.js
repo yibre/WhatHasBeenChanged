@@ -103,6 +103,13 @@ const STRINGS = {
     word_gap: (n) => `동일한 ${n}개 단락 접힘`,
     word_more: (n) => `남은 ${n}개 더 보기`,
     filename_json_word: "문서변경점.json",
+
+    sample_label: "예시 결과 — 파일을 넣으면 이 자리에 실제 비교 결과가 나타납니다",
+    sample_xl_col_a: "상품명", sample_xl_col_b: "단가", sample_xl_col_c: "수량",
+    sample_xl_item1: "사과", sample_xl_item2: "바나나", sample_xl_item3: "딸기", sample_xl_item4: "포도",
+    sample_wd_same: "신규 고객 유치가 활발했습니다.",
+    sample_wd_add: "비용 절감 노력도 성과를 거뒀습니다.",
+    sample_wd_mod_html: "이번 분기 매출은 전년 대비 <del>12%</del><ins>15%</ins> 증가했습니다.",
   },
 
   en: {
@@ -207,6 +214,13 @@ const STRINGS = {
     word_gap: (n) => `${n} unchanged paragraphs collapsed`,
     word_more: (n) => `Show ${n} more`,
     filename_json_word: "word-diff.json",
+
+    sample_label: "Sample result — upload files and the real comparison will appear right here",
+    sample_xl_col_a: "Item", sample_xl_col_b: "Unit price", sample_xl_col_c: "Qty",
+    sample_xl_item1: "Apples", sample_xl_item2: "Bananas", sample_xl_item3: "Strawberries", sample_xl_item4: "Grapes",
+    sample_wd_same: "New customer acquisition remained strong.",
+    sample_wd_add: "Cost-cutting efforts also paid off.",
+    sample_wd_mod_html: "Revenue this quarter grew <del>12%</del><ins>15%</ins> year over year.",
   },
 
   zh: {
@@ -311,6 +325,13 @@ const STRINGS = {
     word_gap: (n) => `已折叠 ${n} 个相同段落`,
     word_more: (n) => `显示剩余 ${n} 项`,
     filename_json_word: "文档差异.json",
+
+    sample_label: "示例结果 — 上传文件后，真实的比较结果会显示在这里",
+    sample_xl_col_a: "项目", sample_xl_col_b: "单价", sample_xl_col_c: "数量",
+    sample_xl_item1: "苹果", sample_xl_item2: "香蕉", sample_xl_item3: "草莓", sample_xl_item4: "葡萄",
+    sample_wd_same: "新客户拓展依然活跃。",
+    sample_wd_add: "降本增效也取得了成效。",
+    sample_wd_mod_html: "本季度营收同比增长<del>12%</del><ins>15%</ins>。",
   },
 
   es: {
@@ -415,6 +436,13 @@ const STRINGS = {
     word_gap: (n) => `${n} párrafos sin cambios colapsados`,
     word_more: (n) => `Mostrar ${n} más`,
     filename_json_word: "diferencias-word.json",
+
+    sample_label: "Resultado de ejemplo — sube archivos y la comparación real aparecerá aquí mismo",
+    sample_xl_col_a: "Artículo", sample_xl_col_b: "Precio unitario", sample_xl_col_c: "Cantidad",
+    sample_xl_item1: "Manzanas", sample_xl_item2: "Plátanos", sample_xl_item3: "Fresas", sample_xl_item4: "Uvas",
+    sample_wd_same: "La captación de nuevos clientes se mantuvo sólida.",
+    sample_wd_add: "Los esfuerzos de reducción de costos también dieron resultado.",
+    sample_wd_mod_html: "Los ingresos de este trimestre crecieron un <del>12%</del><ins>15%</ins> interanual.",
   },
 };
 
@@ -451,4 +479,6 @@ function applyStaticI18n() {
   document.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
   const toggle = document.getElementById("langToggle");
   if (toggle) toggle.value = lang;
+  const sampleMod = document.getElementById("sampleWordMod");
+  if (sampleMod) sampleMod.innerHTML = t("sample_wd_mod_html");
 }
